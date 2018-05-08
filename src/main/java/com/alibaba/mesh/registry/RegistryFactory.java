@@ -23,7 +23,7 @@ import com.alibaba.mesh.common.extension.SPI;
 /**
  * RegistryFactory. (SPI, Singleton, ThreadSafe)
  *
- * @see com.alibaba.dubbo.registry.support.AbstractRegistryFactory
+ * @see com.alibaba.mesh.registry.support.AbstractRegistryFactory
  */
 @SPI("etcd3")
 public interface RegistryFactory {

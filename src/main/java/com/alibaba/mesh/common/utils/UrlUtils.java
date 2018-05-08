@@ -50,7 +50,7 @@ public class UrlUtils {
         }
         String defaultProtocol = defaults == null ? null : defaults.get("protocol");
         if (defaultProtocol == null || defaultProtocol.length() == 0) {
-            defaultProtocol = "dubbo";
+            defaultProtocol = "mesh";
         }
         String defaultUsername = defaults == null ? null : defaults.get("username");
         String defaultPassword = defaults == null ? null : defaults.get("password");
@@ -301,7 +301,7 @@ public class UrlUtils {
         return notify;
     }
 
-    //compatible for dubbo-2.0.0
+    //compatible for mesh-2.0.0
     public static List<String> revertForbid(List<String> forbid, Set<URL> subscribed) {
         if (forbid != null && !forbid.isEmpty()) {
             List<String> newForbid = new ArrayList<String>();

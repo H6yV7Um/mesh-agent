@@ -30,6 +30,7 @@ import com.alibaba.mesh.rpc.Invoker;
 import com.alibaba.mesh.rpc.Protocol;
 import com.alibaba.mesh.rpc.ProxyFactory;
 import com.alibaba.mesh.rpc.cluster.ConfiguratorFactory;
+import com.alibaba.mesh.rpc.service.GenericException;
 import com.alibaba.mesh.rpc.service.GenericService;
 
 import java.net.InetAddress;
@@ -51,12 +52,12 @@ import static com.alibaba.mesh.common.utils.NetUtils.isInvalidLocalHost;
 import static com.alibaba.mesh.common.utils.NetUtils.isInvalidPort;
 
 /**
- * ExportConfig
+ * ExporterConfig
  *
  * @author yiji.github@hotmail.com
  *
  */
-public class ExportConfig<T> extends AbstractServiceConfig {
+public class ExporterConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 6994342007257717119L;
 
@@ -75,7 +76,7 @@ public class ExportConfig<T> extends AbstractServiceConfig {
 
     // interface type
     private String interfaceName;
-    private String interfaceNames;
+
     // service name
     private String path;
 
@@ -85,7 +86,9 @@ public class ExportConfig<T> extends AbstractServiceConfig {
 
     private volatile String generic;
 
-    public ExportConfig() {
+    private EndPointConfig endPoint;
+
+    public ExporterConfig() {
     }
 
     private static Integer getRandomPort(String protocol) {
@@ -147,7 +150,7 @@ public class ExportConfig<T> extends AbstractServiceConfig {
         }
         exported = true;
         if (interfaceName == null || interfaceName.length() == 0) {
-            throw new IllegalStateException("<agent:export interface=\"\" /> interface not allow null!");
+            throw new IllegalStateException("<mesh:export interface=\"\" /> interface not allow null!");
         }
         interfaceClass = GenericService.class;
 
@@ -205,6 +208,8 @@ public class ExportConfig<T> extends AbstractServiceConfig {
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
         }
+
+        appendParameters(map, endPoint, Constants.ENDPOINT_KEY);
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
 
@@ -231,13 +236,13 @@ public class ExportConfig<T> extends AbstractServiceConfig {
             // export to remote if the config is not local (export to local only when config is local)
             if (!Constants.SCOPE_LOCAL.equalsIgnoreCase(scope)) {
                 if (logger.isInfoEnabled()) {
-                    logger.info("Export agent service " + interfaceClass.getName() + " to url " + url);
+                    logger.info("Export mesh service " + interfaceClass.getName() + " to url " + url);
                 }
                 if (registryURLs != null && !registryURLs.isEmpty()) {
                     for (URL registryURL : registryURLs) {
                         url = url.addParameterIfAbsent(Constants.DYNAMIC_KEY, registryURL.getParameter(Constants.DYNAMIC_KEY));
                         if (logger.isInfoEnabled()) {
-                            logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
+                            logger.info("Register mesh service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
                         }
                         Invoker invoker = proxyFactory.getInvoker(NOOP_SERVICE, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
 
@@ -488,5 +493,23 @@ public class ExportConfig<T> extends AbstractServiceConfig {
         return buf.toString();
     }
 
-    public static final Object NOOP_SERVICE = new Object();
+    public EndPointConfig getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(EndPointConfig endPoint) {
+        this.endPoint = endPoint;
+    }
+
+    public static final NoopService NOOP_SERVICE = new NoopService();
+
+    public static class NoopService implements GenericService{
+        /**
+         *   Noop operation.
+         */
+        @Override
+        public Object $invoke(String method, String[] parameterTypes, Object[] args) throws GenericException {
+            return null;
+        }
+    }
 }

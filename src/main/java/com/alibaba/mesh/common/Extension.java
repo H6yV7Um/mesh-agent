@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Marker for extension interface
  * <p/>
  * Changes on extension configuration file <br/>
- * Use <code>Protocol</code> as an example, its configuration file 'META-INF/dubbo/com.xxx.Protocol' is changes from: <br/>
+ * Use <code>Protocol</code> as an example, its configuration file 'META-INF/mesh/com.xxx.Protocol' is changes from: <br/>
  * <pre>
  *     com.foo.XxxProtocol
  *     com.foo.YyyProtocol
@@ -42,27 +42,22 @@ import java.lang.annotation.Target;
  * The reason for this change is:
  * <p>
  * If there's third party library referenced by static field or by method in extension implementation, its class will
- * fail to initialize if the third party library doesn't exist. In this case, dubbo cannot figure out extension's id
+ * fail to initialize if the third party library doesn't exist. In this case, mesh cannot figure out extension's id
  * therefore cannot be able to map the exception information with the extension, if the previous format is used.
  * <p/>
  * For example:
  * <p>
- * Fails to load Extension("mina"). When user configure to use mina, dubbo will complain the extension cannot be loaded,
+ * Fails to load Extension("mina"). When user configure to use mina, mesh will complain the extension cannot be loaded,
  * instead of reporting which extract extension implementation fails and the extract reason.
  * </p>
  *
  * @deprecated because it's too general, switch to use {@link com.alibaba.agent.common.extension.SPI}
  */
-@Deprecated
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface Extension {
 
-    /**
-     * @deprecated
-     */
-    @Deprecated
     String value() default "";
 
 }

@@ -14,22 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.mesh.remoting.support;
+package com.alibaba.mesh.common.threadpool;
 
-import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
-import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
+import com.alibaba.mesh.common.Constants;
+import com.alibaba.mesh.common.URL;
+import com.alibaba.mesh.common.extension.Adaptive;
+import com.alibaba.mesh.common.extension.SPI;
 
-import io.netty.channel.ChannelHandlerContext;
+import java.util.concurrent.Executor;
 
 /**
- * ExchangeHandlerAdapter
+ * ThreadPool
  */
-public abstract class ExchangeHandlerAdapter extends AbstractChannelHandler implements ExchangeHandler {
+@SPI("fixed")
+public interface ThreadPool {
 
-    @Override
-    public Object reply(ChannelHandlerContext ctx, Object msg) throws RemotingException {
-        return null;
-    }
+    /**
+     * Thread pool
+     *
+     * @param url URL contains thread parameter
+     * @return thread pool
+     */
+    @Adaptive({Constants.THREADPOOL_KEY})
+    Executor getExecutor(URL url);
 
 }

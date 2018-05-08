@@ -18,6 +18,7 @@ package com.alibaba.mesh.common.compiler.support;
 
 import com.alibaba.mesh.common.compiler.Compiler;
 import com.alibaba.mesh.common.utils.ClassHelper;
+import com.alibaba.mesh.common.utils.ClassUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

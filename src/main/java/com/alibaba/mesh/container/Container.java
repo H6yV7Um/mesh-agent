@@ -14,15 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.mesh.remoting.transport;
+package com.alibaba.mesh.container;
 
-import com.alibaba.mesh.remoting.ChannelHandler;
+import com.alibaba.mesh.common.extension.SPI;
 
-public abstract class AbstractChannelHandlerDelegate extends AbstractChannelHandler {
+/**
+ * Container. (SPI, Singleton, ThreadSafe)
+ */
+@SPI("spring")
+public interface Container {
 
-    protected ChannelHandler handler;
+    /**
+     * start.
+     */
+    void start();
 
-    protected AbstractChannelHandlerDelegate(ChannelHandler handler) {
-        this.handler = handler;
-    }
+    /**
+     * stop.
+     */
+    void stop();
+
 }

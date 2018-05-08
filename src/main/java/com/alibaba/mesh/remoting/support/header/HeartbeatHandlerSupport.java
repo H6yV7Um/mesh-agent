@@ -23,7 +23,7 @@ import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.remoting.transport.AbstractChannelHandlerDelegate;
+import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,11 +31,11 @@ import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HeartbeatHandler extends AbstractChannelHandlerDelegate {
+public class HeartbeatHandlerSupport extends AbstractChannelHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandlerSupport.class);
 
-    public HeartbeatHandler(ChannelHandler handler) {
+    public HeartbeatHandlerSupport(ChannelHandler handler) {
         super(handler);
     }
 

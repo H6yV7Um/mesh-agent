@@ -32,7 +32,7 @@ import com.alibaba.mesh.remoting.exchange.ExchangeClient;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.ExchangeServer;
 import com.alibaba.mesh.remoting.exchange.Exchangers;
-import com.alibaba.mesh.remoting.support.ExchangeHandlerAdapter;
+import com.alibaba.mesh.remoting.support.ExchangeHandlerSupportAdapter;
 import com.alibaba.mesh.rpc.Exporter;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Invoker;
@@ -71,7 +71,7 @@ public class MeshProtocol extends AbstractProtocol {
     //consumer side export a stub service for dispatching event
     //servicekey-stubmethods
     private final ConcurrentMap<String, String> stubServiceMethodsMap = new ConcurrentHashMap<String, String>();
-    private ExchangeHandler requestHandler = new ExchangeHandlerAdapter() {
+    private ExchangeHandler requestHandler = new ExchangeHandlerSupportAdapter() {
 
         @Override
         public Object reply(ChannelHandlerContext ctx, Object message) throws RemotingException {
@@ -425,7 +425,7 @@ public class MeshProtocol extends AbstractProtocol {
             if (server != null) {
                 try {
                     if (logger.isInfoEnabled()) {
-                        logger.info("Close dubbo server: " + server.getLocalAddress());
+                        logger.info("Close mesh server: " + server.getLocalAddress());
                     }
                     server.close(ConfigUtils.getServerShutdownTimeout());
                 } catch (Throwable t) {
@@ -439,7 +439,7 @@ public class MeshProtocol extends AbstractProtocol {
             if (client != null) {
                 try {
                     if (logger.isInfoEnabled()) {
-                        logger.info("Close dubbo connect: " + client.getLocalAddress() + "-->" + client.getRemoteAddress());
+                        logger.info("Close mesh connect: " + client.getLocalAddress() + "-->" + client.getRemoteAddress());
                     }
                     client.close(ConfigUtils.getServerShutdownTimeout());
                 } catch (Throwable t) {
@@ -453,7 +453,7 @@ public class MeshProtocol extends AbstractProtocol {
             if (client != null) {
                 try {
                     if (logger.isInfoEnabled()) {
-                        logger.info("Close dubbo connect: " + client.getLocalAddress() + "-->" + client.getRemoteAddress());
+                        logger.info("Close mesh connect: " + client.getLocalAddress() + "-->" + client.getRemoteAddress());
                     }
                     client.close(ConfigUtils.getServerShutdownTimeout());
                 } catch (Throwable t) {

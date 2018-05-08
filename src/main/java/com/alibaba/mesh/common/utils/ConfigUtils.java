@@ -209,7 +209,7 @@ public class ConfigUtils {
     /**
      * Load properties file to {@link Properties} from class path.
      *
-     * @param fileName       properties file name. for example: <code>dubbo.properties</code>, <code>METE-INF/conf/foo.properties</code>
+     * @param fileName       properties file name. for example: <code>mesh.properties</code>, <code>METE-INF/conf/foo.properties</code>
      * @param allowMultiFile if <code>false</code>, throw {@link IllegalStateException} when found multi file on the class path.
      * @param optional       is optional. if <code>false</code>, log warn when properties config file not found!s
      * @return loaded {@link Properties} content. <ul>
@@ -254,7 +254,7 @@ public class ConfigUtils {
 
         if (!allowMultiFile) {
             if (list.size() > 1) {
-                String errMsg = String.format("only 1 %s file is expected, but %d dubbo.properties files found on class path: %s",
+                String errMsg = String.format("only 1 %s file is expected, but %d mesh.properties files found on class path: %s",
                         fileName, list.size(), list.toString());
                 logger.warn(errMsg);
                 // throw new IllegalStateException(errMsg); // see http://code.alibabatech.com/jira/browse/DUBBO-133

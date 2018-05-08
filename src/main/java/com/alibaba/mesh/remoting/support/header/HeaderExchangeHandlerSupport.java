@@ -26,7 +26,7 @@ import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
+import com.alibaba.mesh.remoting.transport.AbstractChannelHandlerSupport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,13 +39,13 @@ import java.net.InetSocketAddress;
 /**
  * ExchangeReceiver
  */
-public class HeaderExchangeHandler extends AbstractChannelHandler {
+public class HeaderExchangeHandlerSupport extends AbstractChannelHandlerSupport {
 
-    protected static final Logger logger = LoggerFactory.getLogger(HeaderExchangeHandler.class);
+    protected static final Logger logger = LoggerFactory.getLogger(HeaderExchangeHandlerSupport.class);
 
     private final ExchangeHandler handler;
 
-    public HeaderExchangeHandler(ExchangeHandler handler) {
+    public HeaderExchangeHandlerSupport(ExchangeHandler handler) {
         if (handler == null) {
             throw new IllegalArgumentException("handler == null");
         }

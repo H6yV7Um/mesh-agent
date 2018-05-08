@@ -243,7 +243,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 
         if (destroyed.get()) {
             throw new RpcException("Rpc cluster invoker for " + getInterface() + " on consumer " + NetUtils.getLocalHost()
-                    + " use dubbo version " + Version.getVersion()
+                    + " use mesh version " + Version.getVersion()
                     + " is now destroyed! Can not invoke any more.");
         }
     }
@@ -260,7 +260,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
                     + ". No provider available for the service " + directory.getUrl().getServiceKey()
                     + " from registry " + directory.getUrl().getAddress()
                     + " on the consumer " + NetUtils.getLocalHost()
-                    + " using the dubbo version " + Version.getVersion()
+                    + " using the mesh version " + Version.getVersion()
                     + ". Please check if the providers have been started and registered.");
         }
     }

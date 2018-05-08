@@ -14,33 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.alibaba.mesh.remoting.transport;
+package com.alibaba.mesh.remoting.support;
 
-import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.exchange.MultiMessage;
+import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
+import com.alibaba.mesh.remoting.transport.AbstractChannelHandlerSupport;
 
 import io.netty.channel.ChannelHandlerContext;
 
 /**
- *
- * @see MultiMessage
+ * ExchangeHandlerSupportAdapter
  */
-public class MultiMessageHandler extends AbstractChannelHandlerDelegate {
-
-    public MultiMessageHandler(ChannelHandler handler) {
-        super(handler);
-    }
+public abstract class ExchangeHandlerSupportAdapter extends AbstractChannelHandlerSupport implements ExchangeHandler {
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
-        if (message instanceof MultiMessage) {
-            MultiMessage list = (MultiMessage) message;
-            for (Object obj : list) {
-                handler.channelRead(ctx, obj);
-            }
-        } else {
-            handler.channelRead(ctx, message);
-        }
+    public Object reply(ChannelHandlerContext ctx, Object msg) throws RemotingException {
+        return null;
     }
+
 }

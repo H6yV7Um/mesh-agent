@@ -22,7 +22,7 @@ import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.transport.AbstractClient;
+import com.alibaba.mesh.remoting.transport.AbstractClientSupport;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * NettyClient.
  */
-public class NettyClient extends AbstractClient {
+public class NettyClient extends AbstractClientSupport {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
@@ -73,7 +73,6 @@ public class NettyClient extends AbstractClient {
         }
 
         bootstrap.handler(new ChannelInitializer() {
-
             @Override
             protected void initChannel(Channel ch) throws Exception {
                 NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyClient.this);
@@ -120,7 +119,7 @@ public class NettyClient extends AbstractClient {
                 throw new RemotingException(this.channel, "client(url: " + getUrl() + ") failed to connect to server "
                         + getRemoteAddress() + " client-side timeout "
                         + getConnectTimeout() + "ms (elapsed: " + (System.currentTimeMillis() - start) + "ms) from netty client "
-                        + NetUtils.getLocalHost() + " using dubbo version " + Version.getVersion());
+                        + NetUtils.getLocalHost() + " using mesh version " + Version.getVersion());
             }
         } finally {
             if (!isConnected()) {

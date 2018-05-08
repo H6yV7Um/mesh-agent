@@ -135,7 +135,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
         // set request and serialization flag.
         // slot [2]
         byte flag = header.getByte(2),
-        // set codec type, eg: dubbo
+        // set codec type, eg: mesh
         // slot[3]
              codec = header.getByte(3);
 
@@ -247,7 +247,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
             throw new UnsupportedEncodingException("Not found extension '" + url.getParameter(Constants.CODEC_KEY, Constants.DEFAULT_REMOTING_CODEC));
         }
 
-        // set codec type, eg: dubbo
+        // set codec type, eg: mesh
         // slot [3]
         header.writeByte(codeable.getCodecTypeId());
 
@@ -301,7 +301,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
             // slot [2]
             if (response.isHeartbeat()) header.writeByte(FLAG_EVENT | header.getByte(2));
 
-            // skip codec type, eg: dubbo
+            // skip codec type, eg: mesh
             // slot [3]
             header.writerIndex(4);
 

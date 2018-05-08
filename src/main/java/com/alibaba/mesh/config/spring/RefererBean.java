@@ -16,6 +16,7 @@
  */
 package com.alibaba.mesh.config.spring;
 
+import com.alibaba.mesh.config.CodecConfig;
 import com.alibaba.mesh.config.RefererConfig;
 import com.alibaba.mesh.config.RegistryConfig;
 import com.alibaba.mesh.config.annotation.Parameter;
@@ -71,6 +72,25 @@ public class RefererBean<T> extends RefererConfig<T> implements FactoryBean, App
     @Override
     @SuppressWarnings({"unchecked"})
     public void afterPropertiesSet() throws Exception {
+
+        if (getCodecConfig() == null) {
+            Map<String, CodecConfig> codecConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, CodecConfig.class, false, false);
+            if (codecConfigMap != null && codecConfigMap.size() > 0) {
+                CodecConfig codecConfig = null;
+                for (CodecConfig config : codecConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (codecConfig != null) {
+                            throw new IllegalStateException("Duplicate codec configs: " + codecConfig + " and " + config);
+                        }
+                        codecConfig = config;
+                    }
+                }
+                if (codecConfig != null) {
+                    setCodecConfig(codecConfig);
+                }
+            }
+        }
+
         if (getRegistries() == null || getRegistries().isEmpty()) {
             Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, RegistryConfig.class, false, false);
             if (registryConfigMap != null && registryConfigMap.size() > 0) {

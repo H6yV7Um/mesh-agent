@@ -128,12 +128,12 @@ public class CodecConfig extends AbstractConfig {
         this.deserialization = deserialization;
     }
 
-    public Boolean getDefault() {
+    public Boolean isDefault() {
         return isDefault;
     }
 
-    public void setDefault(Boolean aDefault) {
-        isDefault = aDefault;
+    public void setDefault(Boolean isDefault) {
+        isDefault = isDefault;
     }
 
     public Boolean getActive() {
@@ -143,4 +143,5 @@ public class CodecConfig extends AbstractConfig {
     public void setActive(Boolean active) {
         isActive = active;
     }
+
 }

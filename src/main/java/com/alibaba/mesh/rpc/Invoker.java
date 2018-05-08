@@ -21,9 +21,9 @@ import com.alibaba.mesh.common.Node;
 /**
  * Invoker. (API/SPI, Prototype, ThreadSafe)
  *
- * @see com.alibaba.dubbo.rpc.Protocol#refer(Class, com.alibaba.dubbo.common.URL)
- * @see com.alibaba.dubbo.rpc.InvokerListener
- * @see com.alibaba.dubbo.rpc.protocol.AbstractInvoker
+ * @see com.alibaba.mesh.rpc.Protocol#refer(Class, com.alibaba.mesh.common.URL)
+ * @see com.alibaba.mesh.rpc.InvokerListener
+ * @see com.alibaba.mesh.rpc.protocol.AbstractInvoker
  */
 public interface Invoker<T> extends Node {
 

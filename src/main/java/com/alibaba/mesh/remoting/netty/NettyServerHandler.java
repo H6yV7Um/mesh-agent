@@ -20,10 +20,14 @@ import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -62,6 +66,11 @@ public class NettyServerHandler extends ChannelDuplexHandler {
         channels.put(remoteAddress, ctx.channel());
         try{
             handler.channelActive(ctx);
+
+            // connect to local service
+
+
+
         }finally {
             if(!ctx.channel().isActive()){
                 channels.remove(remoteAddress);

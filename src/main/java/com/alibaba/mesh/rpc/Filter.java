@@ -38,7 +38,7 @@ public interface Filter {
      * @param invocation invocation.
      * @return invoke result.
      * @throws RpcException
-     * @see com.alibaba.dubbo.rpc.Invoker#invoke(Invocation)
+     * @see com.alibaba.mesh.rpc.Invoker#invoke(Invocation)
      */
     Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException;
 

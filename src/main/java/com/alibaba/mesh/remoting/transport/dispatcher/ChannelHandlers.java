@@ -18,11 +18,8 @@ package com.alibaba.mesh.remoting.transport.dispatcher;
 
 
 import com.alibaba.mesh.common.URL;
-import com.alibaba.mesh.common.extension.ExtensionLoader;
 import com.alibaba.mesh.remoting.ChannelHandler;
-import com.alibaba.mesh.remoting.Dispatcher;
-import com.alibaba.mesh.remoting.support.header.HeartbeatHandler;
-import com.alibaba.mesh.remoting.transport.MultiMessageHandler;
+import com.alibaba.mesh.remoting.transport.MultiMessageHandlerSupport;
 
 public class ChannelHandlers {
 
@@ -44,7 +41,6 @@ public class ChannelHandlers {
     }
 
     protected ChannelHandler wrapInternal(ChannelHandler handler, URL url) {
-        return new MultiMessageHandler(new HeartbeatHandler(ExtensionLoader.getExtensionLoader(Dispatcher.class)
-                .getAdaptiveExtension().dispatch(handler, url)));
+        return new MultiMessageHandlerSupport(new DeliveryDispatcher(handler, url));
     }
 }

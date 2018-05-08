@@ -30,7 +30,7 @@ public interface InvokerListener {
      *
      * @param invoker
      * @throws RpcException
-     * @see com.alibaba.dubbo.rpc.Protocol#refer(Class, URL)
+     * @see com.alibaba.mesh.rpc.Protocol#refer(Class, URL)
      */
     void referred(Invoker<?> invoker) throws RpcException;
 
@@ -38,7 +38,7 @@ public interface InvokerListener {
      * The invoker destroyed.
      *
      * @param invoker
-     * @see com.alibaba.dubbo.rpc.Invoker#destroy()
+     * @see com.alibaba.mesh.rpc.Invoker#destroy()
      */
     void destroyed(Invoker<?> invoker);
 

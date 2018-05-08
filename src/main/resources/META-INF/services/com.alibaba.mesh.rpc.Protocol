@@ -1,0 +1,2 @@
+mesh=com.alibaba.mesh.rpc.protocol.mesh.MeshProtocol
+registry=com.alibaba.mesh.registry.RegistryProtocol

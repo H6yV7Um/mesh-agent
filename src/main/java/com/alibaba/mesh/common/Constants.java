@@ -81,11 +81,11 @@ public class Constants {
 
     public static final String DEFAULT_CLUSTER = "failover";
 
-    public static final String DEFAULT_DIRECTORY = "dubbo";
+    public static final String DEFAULT_DIRECTORY = "mesh";
 
     public static final String DEFAULT_LOADBALANCE = "random";
 
-    public static final String DEFAULT_PROTOCOL = "dubbo";
+    public static final String DEFAULT_PROTOCOL = "mesh";
 
     public static final String DEFAULT_EXCHANGER = "header";
 
@@ -95,7 +95,7 @@ public class Constants {
 
     public static final String DEFAULT_REMOTING_CLIENT = "netty";
 
-    public static final String DEFAULT_REMOTING_CODEC = "dubbo";
+    public static final String DEFAULT_REMOTING_CODEC = "mesh";
 
     public static final String DEFAULT_REMOTING_SERIALIZATION = "hessian2";
 
@@ -154,6 +154,8 @@ public class Constants {
 
     public static final String DEFAULT_KEY = "default";
 
+    public static final String ENDPOINT_KEY = "endpoint";
+
     public static final String LOADBALANCE_KEY = "loadbalance";
 
     // key for router type, for e.g., "script"/"file",  corresponding to ScriptRouterFactory.NAME, FileRouterFactory.NAME 
@@ -171,7 +173,7 @@ public class Constants {
 
     public static final String CONSUMER_SIDE = "consumer";
 
-    public static final String DEFAULT_REGISTRY = "dubbo";
+    public static final String DEFAULT_REGISTRY = "etcd3";
 
     public static final String BACKUP_KEY = "backup";
 
@@ -259,7 +261,7 @@ public class Constants {
 
     public static final String PROMPT_KEY = "prompt";
 
-    public static final String DEFAULT_PROMPT = "dubbo>";
+    public static final String DEFAULT_PROMPT = "mesh>";
 
     public static final String CODEC_KEY = "codec";
 
@@ -343,7 +345,7 @@ public class Constants {
 
     public static final String REVISION_KEY = "revision";
 
-    public static final String DUBBO_VERSION_KEY = "dubbo";
+    public static final String DUBBO_VERSION_KEY = "mesh";
 
     public static final String MESH_VERSION_KEY = "mesh";
 

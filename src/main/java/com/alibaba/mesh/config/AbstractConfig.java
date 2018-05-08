@@ -79,9 +79,9 @@ public abstract class AbstractConfig implements Serializable {
 
     private static String convertLegacyValue(String key, String value) {
         if (value != null && value.length() > 0) {
-            if ("agent.service.max.retry.providers".equals(key)) {
+            if ("mesh.service.max.retry.providers".equals(key)) {
                 return String.valueOf(Integer.parseInt(value) - 1);
-            } else if ("agent.service.allow.no.provider".equals(key)) {
+            } else if ("mesh.service.allow.no.provider".equals(key)) {
                 return String.valueOf(!Boolean.parseBoolean(value));
             }
         }
@@ -92,7 +92,7 @@ public abstract class AbstractConfig implements Serializable {
         if (config == null) {
             return;
         }
-        String prefix = "agent." + getTagName(config.getClass()) + ".";
+        String prefix = "mesh." + getTagName(config.getClass()) + ".";
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {
             try {
@@ -106,14 +106,14 @@ public abstract class AbstractConfig implements Serializable {
                         String pn = prefix + config.getId() + "." + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config agent");
+                            logger.info("Use System Property " + pn + " to config mesh");
                         }
                     }
                     if (value == null || value.length() == 0) {
                         String pn = prefix + property;
                         value = System.getProperty(pn);
                         if (!StringUtils.isBlank(value)) {
-                            logger.info("Use System Property " + pn + " to config agent");
+                            logger.info("Use System Property " + pn + " to config mesh");
                         }
                     }
                     if (value == null || value.length() == 0) {
@@ -448,7 +448,7 @@ public abstract class AbstractConfig implements Serializable {
     public String toString() {
         try {
             StringBuilder buf = new StringBuilder();
-            buf.append("<agent:");
+            buf.append("<mesh:");
             buf.append(getTagName(getClass()));
             Method[] methods = getClass().getMethods();
             for (Method method : methods) {

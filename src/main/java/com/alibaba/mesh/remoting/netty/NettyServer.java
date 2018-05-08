@@ -23,7 +23,7 @@ import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.Server;
-import com.alibaba.mesh.remoting.transport.AbstractServer;
+import com.alibaba.mesh.remoting.transport.AbstractServerSupport;
 import com.alibaba.mesh.remoting.transport.dispatcher.ChannelHandlers;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -36,6 +36,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ import java.util.Map;
 /**
  * NettyServer
  */
-public class NettyServer extends AbstractServer implements Server {
+public class NettyServer extends AbstractServerSupport implements Server {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
@@ -57,7 +59,7 @@ public class NettyServer extends AbstractServer implements Server {
 
     private ServerBootstrap bootstrap;
 
-    private io.netty.channel.Channel channel;
+    private Channel channel;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -70,7 +72,8 @@ public class NettyServer extends AbstractServer implements Server {
     protected void doOpen() throws Throwable {
         bootstrap = new ServerBootstrap();
 
-        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", true));
+        bossGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
+                new DefaultThreadFactory("NettyServerBoss", true));
         workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
                 new DefaultThreadFactory("NettyServerWorker", true));
 
@@ -86,7 +89,8 @@ public class NettyServer extends AbstractServer implements Server {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
-                        ch.pipeline()//.addLast("logging",new LoggingHandler(LogLevel.INFO))//for debug
+                        ch.pipeline()
+                                .addLast("logging",new LoggingHandler(LogLevel.INFO))
                                 .addLast("decoder", adapter.getDecoder())
                                 .addLast("encoder", adapter.getEncoder())
                                 .addLast("handler", nettyServerHandler);

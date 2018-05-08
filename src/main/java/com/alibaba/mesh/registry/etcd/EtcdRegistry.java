@@ -139,9 +139,9 @@ public class EtcdRegistry extends FailbackRegistry {
                                 public void childChanged(String parentPath, List<String> currentChildren) {
                                     /**
                                      *  because etcd3 not support direct children watch events,
-                                     *  we should filter not interface events. if we watch /dubbo
-                                     *  and /dubbo/interface, when we put key-value pair {/dubbo/interface/hello hello},
-                                     *  we will got events in watching path /dubbo.
+                                     *  we should filter not interface events. if we watch /mesh
+                                     *  and /mesh/interface, when we put key-value pair {/mesh/interface/hello hello},
+                                     *  we will got events in watching path /mesh.
                                      */
                                     List<String> children = filterChildren(currentChildren, url, parentPath);
                                     for (String child : children) {
@@ -150,7 +150,7 @@ public class EtcdRegistry extends FailbackRegistry {
                                             anyServices.add(child);
                                             /**
                                              *  if new interface event arrived, we watching direct children,
-                                             *  eg: /dubbo/interface, /dubbo/interface and so on.
+                                             *  eg: /mesh/interface, /mesh/interface and so on.
                                              */
                                             subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child,
                                                     Constants.CHECK_KEY, String.valueOf(false)), listener);
@@ -164,7 +164,7 @@ public class EtcdRegistry extends FailbackRegistry {
                 etcdClient.create(root);
                 /**
                  *  first time, we want pull already interface and then watching direct children,
-                 *  eg: /dubbo/interface, /dubbo/interface and so on.
+                 *  eg: /mesh/interface, /mesh/interface and so on.
                  */
                 List<String> services = etcdClient.addChildListener(root, interfaceListener);
                 List<String> interfaces = filterChildren(services, url, root);
@@ -212,7 +212,7 @@ public class EtcdRegistry extends FailbackRegistry {
                     etcdClient.create(path);
                     /**
                      *  first time, we want pull already category and then watching direct children,
-                     *  eg: /dubbo/interface/providers, /dubbo/interface/consumers and so on.
+                     *  eg: /mesh/interface/providers, /mesh/interface/consumers and so on.
                      */
                     List<String> children = etcdClient.addChildListener(path, childListener);
                     if (children != null) {

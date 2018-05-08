@@ -29,7 +29,7 @@ public interface ExporterListener {
      *
      * @param exporter
      * @throws RpcException
-     * @see com.alibaba.dubbo.rpc.Protocol#export(Invoker)
+     * @see com.alibaba.mesh.rpc.Protocol#export(Invoker)
      */
     void exported(Exporter<?> exporter) throws RpcException;
 
@@ -38,7 +38,7 @@ public interface ExporterListener {
      *
      * @param exporter
      * @throws RpcException
-     * @see com.alibaba.dubbo.rpc.Exporter#unexport()
+     * @see com.alibaba.mesh.rpc.Exporter#unexport()
      */
     void unexported(Exporter<?> exporter);
 

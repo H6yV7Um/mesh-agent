@@ -17,6 +17,7 @@
 package com.alibaba.mesh.common.compiler.support;
 
 import com.alibaba.mesh.common.utils.ClassHelper;
+import com.alibaba.mesh.common.utils.ClassUtils;
 
 import javax.tools.DiagnosticCollector;
 import javax.tools.FileObject;

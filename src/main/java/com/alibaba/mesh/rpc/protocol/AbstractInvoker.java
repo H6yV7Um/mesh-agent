@@ -127,7 +127,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     public Result invoke(Invocation inv) throws RpcException {
         if (destroyed.get()) {
             throw new RpcException("Rpc invoker for service " + this + " on consumer " + NetUtils.getLocalHost()
-                    + " use dubbo version " + Version.getVersion()
+                    + " use mesh version " + Version.getVersion()
                     + " is DESTROYED, can not be invoked any more!");
         }
         RpcInvocation invocation = (RpcInvocation) inv;

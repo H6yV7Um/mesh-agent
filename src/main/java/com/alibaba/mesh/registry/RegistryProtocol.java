@@ -346,7 +346,7 @@ public class RegistryProtocol implements Protocol {
         }
 
         /**
-         * @param urls The list of registered information , is always not empty, The meaning is the same as the return value of {@link com.alibaba.dubbo.registry.RegistryService#lookup(URL)}.
+         * @param urls The list of registered information , is always not empty, The meaning is the same as the return value of {@link com.alibaba.mesh.registry.RegistryService#lookup(URL)}.
          */
         @Override
         public synchronized void notify(List<URL> urls) {
@@ -489,7 +489,7 @@ public class RegistryProtocol implements Protocol {
                     try {
                         int timeout = ConfigUtils.getServerShutdownTimeout();
                         if (timeout > 0) {
-                            logger.info("Waiting " + timeout + "ms for registry to notify all consumers before unexport. Usually, this is called when you use dubbo API");
+                            logger.info("Waiting " + timeout + "ms for registry to notify all consumers before unexport. Usually, this is called when you use mesh API");
                             Thread.sleep(timeout);
                         }
                         exporter.unexport();

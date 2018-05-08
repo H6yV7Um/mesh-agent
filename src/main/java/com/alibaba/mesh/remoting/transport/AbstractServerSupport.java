@@ -21,19 +21,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * AbstractServer
+ * AbstractServerSupport
  */
-public abstract class AbstractServer extends AbstractEndpoint implements Server {
+public abstract class AbstractServerSupport extends AbstractEndpointSupport implements Server {
 
-    protected static final String SERVER_THREAD_POOL_NAME = "AgentServerHandler";
-    private static final Logger logger = LoggerFactory.getLogger(AbstractServer.class);
+    protected static final String SERVER_THREAD_POOL_NAME = "MeshServerHandler";
+    private static final Logger logger = LoggerFactory.getLogger(AbstractServerSupport.class);
     ExecutorService executor;
     private InetSocketAddress localAddress;
     private InetSocketAddress bindAddress;
     private int accepts;
     private int idleTimeout = 600; //600 seconds
 
-    public AbstractServer(URL url, ChannelHandler handler) throws RemotingException {
+    public AbstractServerSupport(URL url, ChannelHandler handler) throws RemotingException {
         super(url, handler);
         localAddress = getUrl().toInetSocketAddress();
 

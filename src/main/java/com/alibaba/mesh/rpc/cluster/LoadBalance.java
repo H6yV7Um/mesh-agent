@@ -31,7 +31,7 @@ import java.util.List;
  * <p>
  * <a href="http://en.wikipedia.org/wiki/Load_balancing_(computing)">Load-Balancing</a>
  *
- * @see com.alibaba.dubbo.rpc.cluster.Cluster#join(Directory)
+ * @see com.alibaba.mesh.rpc.cluster.Cluster#join(Directory)
  */
 @SPI(RandomLoadBalance.NAME)
 public interface LoadBalance {

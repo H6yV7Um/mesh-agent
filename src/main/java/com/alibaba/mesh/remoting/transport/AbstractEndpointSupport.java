@@ -27,11 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AbstractEndpoint
+ * AbstractEndpointSupport
  */
-public abstract class AbstractEndpoint extends AbstractPeer implements Resetable {
+public abstract class AbstractEndpointSupport extends AbstractPeerSupport implements Resetable {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractEndpoint.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractEndpointSupport.class);
 
     private Codec4 codec;
 
@@ -39,7 +39,7 @@ public abstract class AbstractEndpoint extends AbstractPeer implements Resetable
 
     private int connectTimeout;
 
-    public AbstractEndpoint(URL url, ChannelHandler handler) {
+    public AbstractEndpointSupport(URL url, ChannelHandler handler) {
         super(url, handler);
         this.codec = getChannelCodec(url);
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
@@ -47,7 +47,7 @@ public abstract class AbstractEndpoint extends AbstractPeer implements Resetable
     }
 
     protected static Codec4 getChannelCodec(URL url) {
-        String codecName = url.getParameter(Constants.CODEC_KEY, "dubbo");
+        String codecName = url.getParameter(Constants.CODEC_KEY, "mesh");
         return ExtensionLoader.getExtensionLoader(Codec4.class).getExtension(codecName);
     }
 

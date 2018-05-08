@@ -19,9 +19,9 @@ package com.alibaba.mesh.rpc;
 /**
  * Exporter. (API/SPI, Prototype, ThreadSafe)
  *
- * @see com.alibaba.dubbo.rpc.Protocol#export(Invoker)
- * @see com.alibaba.dubbo.rpc.ExporterListener
- * @see com.alibaba.dubbo.rpc.protocol.AbstractExporter
+ * @see com.alibaba.mesh.rpc.Protocol#export(Invoker)
+ * @see com.alibaba.mesh.rpc.ExporterListener
+ * @see com.alibaba.mesh.rpc.protocol.AbstractExporter
  */
 public interface Exporter<T> {
 

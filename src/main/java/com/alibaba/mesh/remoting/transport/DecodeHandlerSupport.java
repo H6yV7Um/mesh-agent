@@ -27,11 +27,11 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DecodeHandler extends AbstractChannelHandlerDelegate {
+public class DecodeHandlerSupport extends AbstractChannelHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(DecodeHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(DecodeHandlerSupport.class);
 
-    public DecodeHandler(ChannelHandler handler) {
+    public DecodeHandlerSupport(ChannelHandler handler) {
         super(handler);
     }
 

@@ -85,7 +85,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                             + " (" + providers.size() + "/" + copyinvokers.size()
                             + ") from the registry " + directory.getUrl().getAddress()
                             + " on the consumer " + NetUtils.getLocalHost()
-                            + " using the dubbo version " + Version.getVersion() + ". Last error is: "
+                            + " using the mesh version " + Version.getVersion() + ". Last error is: "
                             + le.getMessage(), le);
                 }
                 return result;
@@ -105,7 +105,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 + ". Tried " + len + " times of the providers " + providers
                 + " (" + providers.size() + "/" + copyinvokers.size()
                 + ") from the registry " + directory.getUrl().getAddress()
-                + " on the consumer " + NetUtils.getLocalHost() + " using the dubbo version "
+                + " on the consumer " + NetUtils.getLocalHost() + " using the mesh version "
                 + Version.getVersion() + ". Last error is: "
                 + (le != null ? le.getMessage() : ""), le != null && le.getCause() != null ? le.getCause() : le);
     }

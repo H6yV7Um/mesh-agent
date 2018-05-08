@@ -22,8 +22,8 @@ import java.util.Map;
  * RPC invoke result. (API, Prototype, NonThreadSafe)
  *
  * @serial Don't change the class name and package name.
- * @see com.alibaba.dubbo.rpc.Invoker#invoke(Invocation)
- * @see com.alibaba.dubbo.rpc.RpcResult
+ * @see com.alibaba.mesh.rpc.Invoker#invoke(Invocation)
+ * @see com.alibaba.mesh.rpc.RpcResult
  */
 public interface Result {
 
@@ -65,7 +65,7 @@ public interface Result {
     Object recreate() throws Throwable;
 
     /**
-     * @see com.alibaba.dubbo.rpc.Result#getValue()
+     * @see com.alibaba.mesh.rpc.Result#getValue()
      * @deprecated Replace to getValue()
      */
     @Deprecated

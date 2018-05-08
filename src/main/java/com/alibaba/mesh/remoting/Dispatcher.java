@@ -20,11 +20,12 @@ import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.extension.Adaptive;
 import com.alibaba.mesh.common.extension.SPI;
+import com.alibaba.mesh.remoting.transport.dispatcher.DeliveryDispatcher;
 
 /**
  * ChannelHandlerWrapper (SPI, Singleton, ThreadSafe)
  */
-@SPI
+@SPI(DeliveryDispatcher.NAME)
 public interface Dispatcher {
 
     /**

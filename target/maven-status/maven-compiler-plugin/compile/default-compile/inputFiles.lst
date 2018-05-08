@@ -49,6 +49,7 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/cluster/RouterFactory.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/protocol/mesh/LazyConnectExchangeClient.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/concurrent/ListenableFutureTask.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/container/Main.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/cluster/directory/StaticDirectory.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/utils/UrlUtils.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/RefererConfig.java
@@ -74,7 +75,6 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/protocol/mesh/MeshProtocol.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/listener/ListenerInvokerWrapper.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/exchange/Response.java
-/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/ExportConfig.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/netty/NettyTransporter.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/support/header/HeartbeatHandler.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/transport/dispatcher/ChannelHandlers.java
@@ -85,14 +85,15 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/CodecConfig.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/registry/RegistryService.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/RpcInvocation.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/ExporterConfig.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/ChannelHandler.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/cluster/Configurator.java
-/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/spring/ExportBean.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/serialize/support/SerializableClassRegistry.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/utils/ProtocolUtils.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/utils/ConcurrentHashSet.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/transport/AbstractServer.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/spring/RefererBean.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/container/spring/SpringContainer.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/MethodConfig.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/extension/support/SimpleDataStore.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/StaticContext.java
@@ -100,6 +101,7 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/cluster/loadbalance/RoundRobinLoadBalance.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/transport/AbstractPeer.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/extension/SPI.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/demo/Consumer.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/serialize/ObjectInput.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/compiler/support/AbstractCompiler.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/RpcResult.java
@@ -157,6 +159,7 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/compiler/support/JavassistCompiler.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/InvokerListener.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/ArgumentConfig.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/demo/Provider.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/etcd/jetcd/JEtcdClientWrapper.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/exchange/ResponseFuture.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/netty/NettyClientHandler.java
@@ -177,11 +180,13 @@
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/support/header/HeaderExchangeHandler.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/utils/NamedThreadFactory.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/support/ExchangeHandlerAdapter.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/config/spring/ExporterBean.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/cluster/support/AbstractClusterInvoker.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/support/Replier.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/transport/AbstractEndpoint.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/registry/RegistryProtocol.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/remoting/AbstractChannelHandler.java
+/Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/container/Container.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/common/Constants.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/Exporter.java
 /Users/Jason/opensource/middlewarerace/mesh-agent/src/main/java/com/alibaba/mesh/rpc/service/GenericException.java

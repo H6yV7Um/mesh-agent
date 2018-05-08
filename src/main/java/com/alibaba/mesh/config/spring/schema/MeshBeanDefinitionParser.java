@@ -18,13 +18,11 @@ package com.alibaba.mesh.config.spring.schema;
 
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.extension.ExtensionLoader;
-import com.alibaba.mesh.common.utils.ReflectUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.config.ArgumentConfig;
 import com.alibaba.mesh.config.MethodConfig;
 import com.alibaba.mesh.config.ProtocolConfig;
 import com.alibaba.mesh.config.RegistryConfig;
-import com.alibaba.mesh.config.spring.ExportBean;
 import com.alibaba.mesh.rpc.Protocol;
 
 import org.slf4j.Logger;
@@ -78,7 +76,7 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
             String generatedBeanName = element.getAttribute("name");
             if (generatedBeanName == null || generatedBeanName.length() == 0) {
                 if (ProtocolConfig.class.equals(beanClass)) {
-                    generatedBeanName = "dubbo";
+                    generatedBeanName = "mesh";
                 } else {
                     generatedBeanName = element.getAttribute("interface");
                 }
@@ -109,15 +107,6 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
                         definition.getPropertyValues().addPropertyValue("protocol", new RuntimeBeanReference(id));
                     }
                 }
-            }
-        } else if (ExportBean.class.equals(beanClass)) {
-            String className = element.getAttribute("class");
-            if (className != null && className.length() > 0) {
-                RootBeanDefinition classDefinition = new RootBeanDefinition();
-                classDefinition.setBeanClass(ReflectUtils.forName(className));
-                classDefinition.setLazyInit(false);
-                parseProperties(element.getChildNodes(), classDefinition);
-                beanDefinition.getPropertyValues().addPropertyValue("ref", new BeanDefinitionHolder(classDefinition, id + "Impl"));
             }
         }
         Set<String> props = new HashSet<String>();
@@ -161,9 +150,7 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
                                 beanDefinition.getPropertyValues().addPropertyValue(property, registryConfig);
                             } else if ("registry".equals(property) && value.indexOf(',') != -1) {
                                 parseMultiRef("registries", value, beanDefinition, parserContext);
-                            } else if ("provider".equals(property) && value.indexOf(',') != -1) {
-                                parseMultiRef("providers", value, beanDefinition, parserContext);
-                            } else if ("protocol".equals(property) && value.indexOf(',') != -1) {
+                            }else if ("protocol".equals(property) && value.indexOf(',') != -1) {
                                 parseMultiRef("protocols", value, beanDefinition, parserContext);
                             } else {
                                 Object reference;
@@ -174,16 +161,16 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
                                             || "version".equals(property) && "0.0.0".equals(value)
                                             || "stat".equals(property) && "-1".equals(value)
                                             || "reliable".equals(property) && "false".equals(value)) {
-                                        // backward compatibility for the default value in old version's xsd
                                         value = null;
                                     }
+
                                     reference = value;
                                 } else if ("protocol".equals(property)
                                         && ExtensionLoader.getExtensionLoader(Protocol.class).hasExtension(value)
                                         && (!parserContext.getRegistry().containsBeanDefinition(value)
                                         || !ProtocolConfig.class.getName().equals(parserContext.getRegistry().getBeanDefinition(value).getBeanClassName()))) {
-                                    if ("dubbo:provider".equals(element.getTagName())) {
-                                        logger.warn("Recommended replace <dubbo:provider protocol=\"" + value + "\" ... /> to <dubbo:protocol name=\"" + value + "\" ... />");
+                                    if ("mesh:provider".equals(element.getTagName())) {
+                                        logger.warn("Recommended replace <mesh:provider protocol=\"" + value + "\" ... /> to <mesh:protocol name=\"" + value + "\" ... />");
                                     }
                                     // backward compatibility
                                     ProtocolConfig protocol = new ProtocolConfig();
@@ -216,6 +203,7 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
                                     }
                                     reference = new RuntimeBeanReference(value);
                                 }
+
                                 beanDefinition.getPropertyValues().addPropertyValue(property, reference);
                             }
                         }
@@ -356,7 +344,7 @@ public class MeshBeanDefinitionParser implements BeanDefinitionParser {
                     if ("method".equals(node.getNodeName()) || "method".equals(node.getLocalName())) {
                         String methodName = element.getAttribute("name");
                         if (methodName == null || methodName.length() == 0) {
-                            throw new IllegalStateException("<dubbo:method> name attribute == null");
+                            throw new IllegalStateException("<mesh:method> name attribute == null");
                         }
                         if (methods == null) {
                             methods = new ManagedList();

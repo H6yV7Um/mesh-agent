@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 /**
- * Load dubbo extensions
+ * Load mesh extensions
  * <ul>
  * <li>auto inject dependency extension </li>
  * <li>auto wrap extension in wrapper </li>
@@ -64,7 +64,7 @@ public class ExtensionLoader<T> {
 
     private static final String SERVICES_DIRECTORY = "META-INF/services/";
 
-    private static final String DUBBO_DIRECTORY = "META-INF/agent/";
+    private static final String DUBBO_DIRECTORY = "META-INF/mesh/";
 
     private static final String DUBBO_INTERNAL_DIRECTORY = DUBBO_DIRECTORY + "internal/";
 
@@ -578,7 +578,7 @@ public class ExtensionLoader<T> {
         }
 
         Map<String, Class<?>> extensionClasses = new HashMap<String, Class<?>>();
-        loadDirectory(extensionClasses, DUBBO_INTERNAL_DIRECTORY);
+        loadDirectory(extensionClasses, SERVICES_DIRECTORY);
         // loadDirectory(extensionClasses, DUBBO_DIRECTORY);
         // loadDirectory(extensionClasses, SERVICES_DIRECTORY);
         return extensionClasses;

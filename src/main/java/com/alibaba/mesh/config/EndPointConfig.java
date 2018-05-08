@@ -26,13 +26,14 @@ import com.alibaba.mesh.config.annotation.Parameter;
  */
 public class EndPointConfig extends AbstractConfig {
 
-    private static final long serialVersionUID = 2209242247544070740L;
-
+    private static final long serialVersionUID = 5540582682412663487L;
     // protocol codec name
     private String name;
 
     // service IP address (when there are multiple network cards available)
     private String host;
+
+    private int port;
 
     // if it's default
     private Boolean isDefault;
@@ -61,12 +62,12 @@ public class EndPointConfig extends AbstractConfig {
         }
     }
 
-    public Boolean getDefault() {
+    public Boolean isDefault() {
         return isDefault;
     }
 
-    public void setDefault(Boolean aDefault) {
-        isDefault = aDefault;
+    public void setDefault(Boolean isDefault) {
+        isDefault = isDefault;
     }
 
     public String getHost() {
@@ -75,5 +76,13 @@ public class EndPointConfig extends AbstractConfig {
 
     public void setHost(String host) {
         this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

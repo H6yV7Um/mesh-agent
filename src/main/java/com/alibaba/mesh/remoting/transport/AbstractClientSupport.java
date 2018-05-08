@@ -47,12 +47,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * AbstractClient
+ * AbstractClientSupport
  */
-public abstract class AbstractClient extends AbstractEndpoint implements Client {
+public abstract class AbstractClientSupport extends AbstractEndpointSupport implements Client {
 
     protected static final String CLIENT_THREAD_POOL_NAME = "MeshClientHandler";
-    private static final Logger logger = LoggerFactory.getLogger(AbstractClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractClientSupport.class);
     private static final AtomicInteger CLIENT_THREAD_POOL_ID = new AtomicInteger();
     private static final ScheduledThreadPoolExecutor reconnectExecutorService = new ScheduledThreadPoolExecutor(2, new NamedThreadFactory("DubboClientReconnectTimer", true));
     private final Lock connectLock = new ReentrantLock();
@@ -69,7 +69,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
     private long lastConnectedTime = System.currentTimeMillis();
 
 
-    public AbstractClient(URL url, ChannelHandler handler) throws RemotingException {
+    public AbstractClientSupport(URL url, ChannelHandler handler) throws RemotingException {
         super(url, handler);
 
         send_reconnect = url.getParameter(Constants.SEND_RECONNECT_KEY, false);

@@ -55,7 +55,7 @@ public class RpcResult implements Result, Serializable {
     }
 
     /**
-     * @see com.alibaba.dubbo.rpc.RpcResult#getValue()
+     * @see com.alibaba.mesh.rpc.RpcResult#getValue()
      * @deprecated Replace to getValue()
      */
     @Override
@@ -65,7 +65,7 @@ public class RpcResult implements Result, Serializable {
     }
 
     /**
-     * @see com.alibaba.dubbo.rpc.RpcResult#setValue(Object)
+     * @see com.alibaba.mesh.rpc.RpcResult#setValue(Object)
      * @deprecated Replace to setValue()
      */
     @Deprecated

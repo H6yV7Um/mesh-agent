@@ -77,6 +77,9 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
     private transient volatile Invoker invoker;
     private transient volatile boolean initialized;
     private transient volatile boolean destroyed;
+
+    private CodecConfig codecConfig;
+
     @SuppressWarnings("unused")
     private final Object finalizerGuardian = new Object() {
         @Override
@@ -84,7 +87,7 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
             super.finalize();
 
             if (!RefererConfig.this.destroyed) {
-                logger.warn("ReferenceConfig(" + url + ") is not DESTROYED when FINALIZE");
+                logger.warn("RefererConfig(" + url + ") is not DESTROYED when FINALIZE");
             }
         }
     };
@@ -223,6 +226,7 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
         }
 
         map.put(Constants.INTERFACE_KEY, interfaceName);
+        appendParameters(map, codecConfig, Constants.CODEC_KEY);
         appendParameters(map, this);
         String prefix = StringUtils.getServiceKey(map);
         if (methods != null && !methods.isEmpty()) {
@@ -398,4 +402,11 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
         return buf.toString();
     }
 
+    public CodecConfig getCodecConfig() {
+        return codecConfig;
+    }
+
+    public void setCodecConfig(CodecConfig codecConfig) {
+        this.codecConfig = codecConfig;
+    }
 }

@@ -16,7 +16,8 @@
  */
 package com.alibaba.mesh.config.spring;
 
-import com.alibaba.mesh.config.ExportConfig;
+import com.alibaba.mesh.config.EndPointConfig;
+import com.alibaba.mesh.config.ExporterConfig;
 import com.alibaba.mesh.config.ProtocolConfig;
 import com.alibaba.mesh.config.RegistryConfig;
 
@@ -37,11 +38,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ExportBean
+ * ExporterBean
  *
  * @export
  */
-public class ExportBean<T> extends ExportConfig<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
+public class ExporterBean<T> extends ExporterConfig<T> implements InitializingBean, DisposableBean, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
 
     private static final long serialVersionUID = 4567184380012453627L;
 
@@ -53,7 +54,7 @@ public class ExportBean<T> extends ExportConfig<T> implements InitializingBean, 
 
     private transient boolean supportedApplicationListener;
 
-    public ExportBean() {
+    public ExporterBean() {
         super();
     }
 
@@ -110,6 +111,24 @@ public class ExportBean<T> extends ExportConfig<T> implements InitializingBean, 
     @Override
     @SuppressWarnings({"unchecked", "deprecation"})
     public void afterPropertiesSet() throws Exception {
+
+        if (getEndPoint() == null) {
+            Map<String, EndPointConfig> endPointConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, EndPointConfig.class, false, false);
+            if (endPointConfigMap != null && endPointConfigMap.size() > 0) {
+                EndPointConfig endPointConfig = null;
+                for (EndPointConfig config : endPointConfigMap.values()) {
+                    if (config.isDefault() == null || config.isDefault().booleanValue()) {
+                        if (endPointConfig != null) {
+                            throw new IllegalStateException("Duplicate endpoint configs: " + endPointConfig + " and " + config);
+                        }
+                        endPointConfig = config;
+                    }
+                }
+                if (endPointConfig != null) {
+                    setEndPoint(endPointConfig);
+                }
+            }
+        }
         if (getRegistries() == null || getRegistries().isEmpty()) {
             Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, RegistryConfig.class, false, false);
             if (registryConfigMap != null && registryConfigMap.size() > 0) {
@@ -153,7 +172,7 @@ public class ExportBean<T> extends ExportConfig<T> implements InitializingBean, 
     @Override
     public void destroy() throws Exception {
         // This will only be called for singleton scope bean, and expected to be called by spring shutdown hook when BeanFactory/ApplicationContext destroys.
-        // We will guarantee dubbo related resources being released with dubbo shutdown hook.
+        // We will guarantee mesh related resources being released with mesh shutdown hook.
         //unexport();
     }
 

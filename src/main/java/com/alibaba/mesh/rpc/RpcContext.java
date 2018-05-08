@@ -42,7 +42,7 @@ import java.util.concurrent.TimeoutException;
  * starts invoking C, and saves invocation info from B to C after B invokes C.
  *
  * @export
- * @see com.alibaba.dubbo.rpc.filter.ContextFilter
+ * @see com.alibaba.mesh.rpc.filter.ContextFilter
  */
 public class RpcContext {
 
@@ -98,7 +98,7 @@ public class RpcContext {
     /**
      * remove context.
      *
-     * @see com.alibaba.dubbo.rpc.filter.ContextFilter
+     * @see com.alibaba.mesh.rpc.filter.ContextFilter
      */
     public static void removeContext() {
         LOCAL.remove();

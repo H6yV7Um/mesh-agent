@@ -28,7 +28,7 @@ import java.util.List;
  * <p>
  * <a href="http://en.wikipedia.org/wiki/Directory_service">Directory Service</a>
  *
- * @see com.alibaba.dubbo.rpc.cluster.Cluster#join(Directory)
+ * @see com.alibaba.mesh.rpc.cluster.Cluster#join(Directory)
  */
 public interface Directory<T> extends Node {
 
