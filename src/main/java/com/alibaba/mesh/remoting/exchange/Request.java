@@ -33,6 +33,11 @@ public class Request {
 
     private final long mId;
 
+    /**
+     * endpoint requestId
+     */
+    private long rId = 0;
+
     private String mVersion;
 
     private boolean mTwoWay = true;
@@ -70,6 +75,14 @@ public class Request {
 
     public long getId() {
         return mId;
+    }
+
+    public long getRemoteId() {
+        return rId;
+    }
+
+    public void setRemoteId(long rId) {
+        this.rId = rId;
     }
 
     public String getVersion() {

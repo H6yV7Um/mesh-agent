@@ -77,6 +77,11 @@ public class Response {
 
     private long mId = 0;
 
+    /**
+     * endpoint requestId
+     */
+    private long rId = 0;
+
     private String mVersion;
 
     private byte mStatus = OK;
@@ -105,6 +110,14 @@ public class Response {
 
     public void setId(long id) {
         mId = id;
+    }
+
+    public long getRemoteId() {
+        return rId;
+    }
+
+    public void setRemoteId(long rId) {
+        this.rId = rId;
     }
 
     public String getVersion() {

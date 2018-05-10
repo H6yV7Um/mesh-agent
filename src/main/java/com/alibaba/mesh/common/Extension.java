@@ -51,7 +51,7 @@ import java.lang.annotation.Target;
  * instead of reporting which extract extension implementation fails and the extract reason.
  * </p>
  *
- * @deprecated because it's too general, switch to use {@link com.alibaba.agent.common.extension.SPI}
+ * @deprecated because it's too general, switch to use {@link com.alibaba.mesh.common.extension.SPI}
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

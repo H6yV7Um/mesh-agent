@@ -629,6 +629,10 @@ public class Constants {
 
     public static final String BIND_PORT_KEY = "bind.port";
 
+    public static final String ENDPOINT_HOST_KEY = "endpoint.host";
+
+    public static final String ENDPOINT_PORT_KEY = "endpoint.port";
+
     public static final String REGISTER_IP_KEY = "register.ip";
 
     public static final String QOS_ENABLE = "qos.enable";

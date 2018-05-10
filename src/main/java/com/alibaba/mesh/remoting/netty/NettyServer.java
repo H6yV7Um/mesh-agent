@@ -23,7 +23,7 @@ import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.Server;
-import com.alibaba.mesh.remoting.transport.AbstractServerSupport;
+import com.alibaba.mesh.remoting.transport.AbstractServer;
 import com.alibaba.mesh.remoting.transport.dispatcher.ChannelHandlers;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -51,11 +51,11 @@ import java.util.Map;
 /**
  * NettyServer
  */
-public class NettyServer extends AbstractServerSupport implements Server {
+public class NettyServer extends AbstractServer implements Server {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
-    private Map<String, Channel> channels; // <ip:port, channel>
+    private Map<Channel, Channel> channels; // <ip:port, channel>
 
     private ServerBootstrap bootstrap;
 
@@ -77,8 +77,8 @@ public class NettyServer extends AbstractServerSupport implements Server {
         workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
                 new DefaultThreadFactory("NettyServerWorker", true));
 
-        final NettyServerHandler nettyServerHandler = new NettyServerHandler(getUrl(), this);
-        channels = nettyServerHandler.getChannels();
+        final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
+        channels = statisticHandler.getChannels();
 
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -89,11 +89,13 @@ public class NettyServer extends AbstractServerSupport implements Server {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
+                        NettyServerDeliveryHandler deliveryHandler = new NettyServerDeliveryHandler(getUrl(), NettyServer.this);
                         ch.pipeline()
-                                .addLast("logging",new LoggingHandler(LogLevel.INFO))
-                                .addLast("decoder", adapter.getDecoder())
-                                .addLast("encoder", adapter.getEncoder())
-                                .addLast("handler", nettyServerHandler);
+                                .addLast("logging"  , new LoggingHandler(LogLevel.INFO))
+                                .addLast("decoder"  , adapter.getDecoder())
+                                .addLast("encoder"  , adapter.getEncoder())
+                                .addLast("statistic", statisticHandler)
+                                .addLast("handler"  , deliveryHandler);
                     }
                 });
         // bind

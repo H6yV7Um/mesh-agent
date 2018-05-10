@@ -161,8 +161,10 @@ public abstract class ExchangeCodec extends AbstractCodec {
             response.setStatus(status);
             if (status == Response.OK) {
 
+                boolean isClientSide = isClientSide(url, ctx.channel());
+
                 int weight = header.getInt(4);
-                if(isClientSide(url, ctx.channel())){
+                if(isClientSide){
                     // set current channel weight
                     ctx.channel().attr(Keys.WEIGHT_KEY).set(weight);
                 }
@@ -172,7 +174,16 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     if (response.isEvent()) {
                         data = decodeEventData(ctx, buffer);
                     } else {
-                        data = codeable.decode(ctx, buffer);
+                        if(isClientSide){
+                            data = codeable.decode(ctx, buffer);
+                        }else {
+                            // mesh server
+                            Object decodeBuffer = DecodeResult.NEED_MORE_INPUT;
+                            while ((decodeBuffer = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT){
+                                response.setRemoteId(codeable.getRequestId((ByteBuf) decodeBuffer));
+                            }
+                            data = buffer;
+                        }
                     }
                     response.setResult(data);
                 } catch (Throwable t) {
@@ -186,27 +197,32 @@ public abstract class ExchangeCodec extends AbstractCodec {
             return response;
         } else {
             // decode request.
-            Request req = new Request(id);
-            req.setVersion("2.0.0");
-            req.setTwoWay((flag & FLAG_TWOWAY) != 0);
+            Request request = new Request(id);
+            request.setVersion("2.0.0");
+            request.setTwoWay((flag & FLAG_TWOWAY) != 0);
             if ((flag & FLAG_EVENT) != 0) {
-                req.setEvent(Request.HEARTBEAT_EVENT);
+                request.setEvent(Request.HEARTBEAT_EVENT);
             }
             try {
                 Object data;
-                if (req.isEvent()) {
+                if (request.isEvent()) {
                     data = decodeEventData(ctx, buffer);
                 } else {
                     // only copy client data
-                    data = buffer.slice(buffer.readerIndex(), len);
+                    ByteBuf tempBuf = buffer.slice(buffer.readerIndex(), len);
+                    int savedReaderIndex = tempBuf.readerIndex();
+                    if(!isClientSide(url, ctx.channel())) {
+                        request.setRemoteId(codeable.getRequestId(tempBuf));
+                    }
+                    data = tempBuf.readerIndex(savedReaderIndex);
                 }
-                req.setData(data);
+                request.setData(data);
             } catch (Throwable t) {
                 // bad request
-                req.setBroken(true);
-                req.setData(t);
+                request.setBroken(true);
+                request.setData(t);
             }
-            return req;
+            return request;
         }
     }
 

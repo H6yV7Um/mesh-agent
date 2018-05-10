@@ -27,11 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AbstractEndpointSupport
+ * AbstractEndpoint
  */
-public abstract class AbstractEndpointSupport extends AbstractPeerSupport implements Resetable {
+public abstract class AbstractEndpoint extends AbstractPeer implements Resetable {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractEndpointSupport.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractEndpoint.class);
 
     private Codec4 codec;
 
@@ -39,7 +39,7 @@ public abstract class AbstractEndpointSupport extends AbstractPeerSupport implem
 
     private int connectTimeout;
 
-    public AbstractEndpointSupport(URL url, ChannelHandler handler) {
+    public AbstractEndpoint(URL url, ChannelHandler handler) {
         super(url, handler);
         this.codec = getChannelCodec(url);
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);

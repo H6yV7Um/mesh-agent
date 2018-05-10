@@ -36,13 +36,13 @@ public class HeaderExchanger implements Exchanger {
 
     @Override
     public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
-        // return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandlerSupport(handler))), true);
+        // return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))), true);
         throw new UnsupportedOperationException();
     }
 
     @Override
     public ExchangeServer bind(URL url, ExchangeHandler handler) throws RemotingException {
-        return new HeaderExchangeServer(Transporters.bind(url, new DecodeHandlerSupport(new HeaderExchangeHandlerSupport(handler))));
+        return new HeaderExchangeServer(Transporters.bind(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))));
     }
 
 }

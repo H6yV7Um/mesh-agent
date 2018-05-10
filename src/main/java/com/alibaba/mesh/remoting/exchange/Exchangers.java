@@ -20,11 +20,7 @@ import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.extension.ExtensionLoader;
-import com.alibaba.mesh.remoting.ChannelHandler;
-import com.alibaba.mesh.remoting.ChannelHandlerAdapter;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.support.ExchangeHandlerDispatcher;
-import com.alibaba.mesh.remoting.support.Replier;
 
 /**
  * Exchanger facade. (API, Static, ThreadSafe)
@@ -37,22 +33,6 @@ public class Exchangers {
     }
 
     private Exchangers() {
-    }
-
-    public static ExchangeServer bind(String url, Replier<?> replier) throws RemotingException {
-        return bind(URL.valueOf(url), replier);
-    }
-
-    public static ExchangeServer bind(URL url, Replier<?> replier) throws RemotingException {
-        return bind(url, new ChannelHandlerAdapter(), replier);
-    }
-
-    public static ExchangeServer bind(String url, ChannelHandler handler, Replier<?> replier) throws RemotingException {
-        return bind(URL.valueOf(url), handler, replier);
-    }
-
-    public static ExchangeServer bind(URL url, ChannelHandler handler, Replier<?> replier) throws RemotingException {
-        return bind(url, new ExchangeHandlerDispatcher(replier, handler));
     }
 
     public static ExchangeServer bind(String url, ExchangeHandler handler) throws RemotingException {

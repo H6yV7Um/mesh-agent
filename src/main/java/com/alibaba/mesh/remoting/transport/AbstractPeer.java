@@ -21,9 +21,9 @@ import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Endpoint;
 
 /**
- * AbstractPeerSupport
+ * AbstractPeer
  */
-public abstract class AbstractPeerSupport extends AbstractChannelHandler implements Endpoint, ChannelHandler {
+public abstract class AbstractPeer extends AbstractChannelHandler implements Endpoint, ChannelHandler {
 
     protected volatile URL url;
 
@@ -32,7 +32,7 @@ public abstract class AbstractPeerSupport extends AbstractChannelHandler impleme
 
     private volatile boolean closed;
 
-    public AbstractPeerSupport(URL url, ChannelHandler handler) {
+    public AbstractPeer(URL url, ChannelHandler handler) {
         super(handler);
         this.url = url;
     }

@@ -17,13 +17,17 @@
 package com.alibaba.mesh.remoting;
 
 
+import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
@@ -35,17 +39,13 @@ public class ChannelHandlerDispatcher extends AbstractChannelHandler implements 
 
     private final Collection<ChannelHandler> channelHandlers = new CopyOnWriteArraySet<ChannelHandler>();
 
-    public ChannelHandlerDispatcher() {
+    public ChannelHandlerDispatcher(@Nonnull ChannelHandler... handlers) {
+        this(Arrays.asList(handlers));
     }
 
-    public ChannelHandlerDispatcher(ChannelHandler... handlers) {
-        this(handlers == null ? null : Arrays.asList(handlers));
-    }
-
-    public ChannelHandlerDispatcher(Collection<ChannelHandler> handlers) {
-        if (handlers != null && !handlers.isEmpty()) {
-            this.channelHandlers.addAll(handlers);
-        }
+    public ChannelHandlerDispatcher(@Nonnull List<ChannelHandler> handlers) {
+        super(handlers.get(0));
+        this.channelHandlers.addAll(handlers);
     }
 
     public Collection<ChannelHandler> getChannelHandlers() {

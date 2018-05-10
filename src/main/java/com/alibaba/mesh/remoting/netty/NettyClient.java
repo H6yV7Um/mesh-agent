@@ -22,7 +22,7 @@ import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.transport.AbstractClientSupport;
+import com.alibaba.mesh.remoting.transport.AbstractClient;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * NettyClient.
  */
-public class NettyClient extends AbstractClientSupport {
+public class NettyClient extends AbstractClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 

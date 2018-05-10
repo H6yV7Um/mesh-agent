@@ -37,13 +37,12 @@ import com.alibaba.mesh.rpc.Exporter;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Invoker;
 import com.alibaba.mesh.rpc.Protocol;
-import com.alibaba.mesh.rpc.RpcContext;
 import com.alibaba.mesh.rpc.RpcException;
-import com.alibaba.mesh.rpc.RpcInvocation;
 import com.alibaba.mesh.rpc.protocol.AbstractProtocol;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -74,90 +73,18 @@ public class MeshProtocol extends AbstractProtocol {
     private ExchangeHandler requestHandler = new ExchangeHandlerSupportAdapter() {
 
         @Override
-        public Object reply(ChannelHandlerContext ctx, Object message) throws RemotingException {
-            Channel channel = ctx.channel();
-            if (message instanceof Invocation) {
-                Invocation inv = (Invocation) message;
-                Invoker invoker = getInvoker(ctx, inv);
-                // need to consider backward-compatibility if it's a callback
-                if (Boolean.TRUE.toString().equals(inv.getAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
-                    String methodsStr = invoker.getUrl().getParameters().get("methods");
-                    boolean hasMethod = false;
-                    if (methodsStr == null || methodsStr.indexOf(",") == -1) {
-                        hasMethod = inv.getMethodName().equals(methodsStr);
-                    } else {
-                        String[] methods = methodsStr.split(",");
-                        for (String method : methods) {
-                            if (inv.getMethodName().equals(method)) {
-                                hasMethod = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!hasMethod) {
-                        logger.warn(new IllegalStateException("The methodName " + inv.getMethodName()
-                                + " not found in callback service interface ,invoke will be ignored."
-                                + " please update the api interface. url is:"
-                                + invoker.getUrl()) + " ,invocation is :" + inv);
-                        return null;
-                    }
-                }
-                RpcContext.getContext().setRemoteAddress((InetSocketAddress)channel.remoteAddress());
-                return invoker.invoke(inv);
-            }
-            throw new RemotingException(channel, "Unsupported request: "
-                    + (message == null ? null : (message.getClass().getName() + ": " + message))
-                    + ", channel: consumer: " + channel.remoteAddress() + " --> provider: " + channel.localAddress());
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws RemotingException {
+            // ready to write mesh client
+            ctx.write(msg, promise);
         }
 
         @Override
-        public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
-            if (message instanceof Invocation) {
-                reply(ctx, message);
-            } else {
-                super.channelRead(ctx, message);
+        public void channelWritabilityChanged(ChannelHandlerContext ctx) throws RemotingException {
+            if(ctx.channel().isWritable()){
+                ctx.flush();
             }
         }
 
-        @Override
-        public void channelActive(ChannelHandlerContext ctx) throws RemotingException {
-            invoke(ctx, Constants.ON_CONNECT_KEY);
-        }
-
-        @Override
-        public void channelInactive(ChannelHandlerContext ctx) throws RemotingException {
-            if (logger.isInfoEnabled()) {
-                logger.info("disconnected from " + ctx.channel().remoteAddress());
-            }
-            invoke(ctx, Constants.ON_DISCONNECT_KEY);
-        }
-
-        private void invoke(ChannelHandlerContext ctx, String methodKey) {
-            Invocation invocation = createInvocation(ctx, ctx.channel().attr(Keys.URL_KEY).get(), methodKey);
-            if (invocation != null) {
-                try {
-                    channelRead(ctx, invocation);
-                } catch (Throwable t) {
-                    logger.warn("Failed to invoke event method " + invocation.getMethodName() + "(), cause: " + t.getMessage(), t);
-                }
-            }
-        }
-
-        private Invocation createInvocation(ChannelHandlerContext ctx, URL url, String methodKey) {
-            String method = url.getParameter(methodKey);
-            if (method == null || method.length() == 0) {
-                return null;
-            }
-            RpcInvocation invocation = new RpcInvocation(method, new Class<?>[0], new Object[0]);
-            invocation.setAttachment(Constants.PATH_KEY, url.getPath());
-            invocation.setAttachment(Constants.GROUP_KEY, url.getParameter(Constants.GROUP_KEY));
-            invocation.setAttachment(Constants.INTERFACE_KEY, url.getParameter(Constants.INTERFACE_KEY));
-            invocation.setAttachment(Constants.VERSION_KEY, url.getParameter(Constants.VERSION_KEY));
-            if (url.getParameter(Constants.STUB_EVENT_KEY, false)) {
-                invocation.setAttachment(Constants.STUB_EVENT_KEY, Boolean.TRUE.toString());
-            }
-            return invocation;
-        }
     };
 
     public MeshProtocol() {

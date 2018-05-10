@@ -18,7 +18,6 @@ package com.alibaba.mesh.common.threadpool;
 
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
-import com.alibaba.mesh.common.threadpool.AbortPolicyWithReport;
 import com.alibaba.mesh.common.utils.NamedThreadFactory;
 
 import java.util.concurrent.Executor;

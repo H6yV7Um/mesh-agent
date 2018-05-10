@@ -51,7 +51,7 @@ public class HeaderExchangeServer implements ExchangeServer {
 
     private final ScheduledExecutorService scheduled = Executors.newScheduledThreadPool(1,
             new NamedThreadFactory(
-                    "dubbo-remoting-server-heartbeat",
+                    "mesh-remoting-server-heartbeat",
                     true));
     private final Server server;
     // heartbeat timer
