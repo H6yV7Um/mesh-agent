@@ -36,8 +36,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +89,7 @@ public class NettyServer extends AbstractServer implements Server {
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
                         NettyServerDeliveryHandler deliveryHandler = new NettyServerDeliveryHandler(getUrl(), NettyServer.this);
                         ch.pipeline()
-                                .addLast("logging"  , new LoggingHandler(LogLevel.INFO))
+                                // .addLast("logging"  , new LoggingHandler(LogLevel.INFO))
                                 .addLast("decoder"  , adapter.getDecoder())
                                 .addLast("encoder"  , adapter.getEncoder())
                                 .addLast("statistic", statisticHandler)

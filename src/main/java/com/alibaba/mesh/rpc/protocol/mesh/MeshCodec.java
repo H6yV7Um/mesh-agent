@@ -17,7 +17,6 @@
 package com.alibaba.mesh.rpc.protocol.mesh;
 
 import com.alibaba.mesh.remoting.Codec4;
-import com.alibaba.mesh.remoting.exchange.codec.ExchangeCodec;
 
 /**
  * Mesh codec.

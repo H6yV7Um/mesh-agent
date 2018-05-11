@@ -81,6 +81,8 @@ public class NettyClient extends AbstractClient {
                         .addLast("encoder", adapter.getEncoder())
                         .addLast("handler", nettyClientHandler);
             }
+
+
         });
     }
 

@@ -73,6 +73,13 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     }
 
     @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+        if(!ctx.channel().isWritable()){
+            ctx.flush();
+        }
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         handler.exceptionCaught(ctx, cause);

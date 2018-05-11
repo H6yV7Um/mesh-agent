@@ -17,13 +17,12 @@
 package com.alibaba.mesh.remoting.netty;
 
 import com.alibaba.mesh.common.URL;
-import com.alibaba.mesh.remoting.Codec4;
+import com.alibaba.mesh.remoting.Codeable;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,38 +30,21 @@ import java.util.List;
 /**
  * NettyCodecAdapter.
  */
-final class NettyCodecAdapter {
-
-    private final ChannelHandler encoder = new InternalEncoder();
+final class NettyDecodebytesAdapter {
 
     private final ChannelHandler decoder = new InternalDecoder();
 
-    private final Codec4 codec;
+    private final Codeable codec;
 
     private final URL url;
 
-    private final ChannelHandler handler;
-
-    public NettyCodecAdapter(Codec4 codec, URL url, ChannelHandler handler) {
+    public NettyDecodebytesAdapter(Codeable codec, URL url) {
         this.codec = codec;
         this.url = url;
-        this.handler = handler;
-    }
-
-    public ChannelHandler getEncoder() {
-        return encoder;
     }
 
     public ChannelHandler getDecoder() {
         return decoder;
-    }
-
-    protected class InternalEncoder extends MessageToByteEncoder {
-
-        @Override
-        protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf buffer) throws Exception {
-            codec.encode(ctx, buffer, msg);
-        }
     }
 
     protected class InternalDecoder extends ByteToMessageDecoder {
@@ -76,11 +58,11 @@ final class NettyCodecAdapter {
             do {
                 saveReaderIndex = buffer.readerIndex();
                 try {
-                    msg = codec.decode(ctx, buffer);
+                    msg = codec.decodeBytes(ctx, buffer);
                 } catch (IOException e) {
                     throw e;
                 }
-                if (msg == Codec4.DecodeResult.NEED_MORE_INPUT) {
+                if (msg == Codeable.DecodeResult.NEED_MORE_INPUT) {
                     buffer.readerIndex(saveReaderIndex);
                     break;
                 } else {

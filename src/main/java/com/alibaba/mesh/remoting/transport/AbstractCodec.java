@@ -18,6 +18,7 @@ package com.alibaba.mesh.remoting.transport;
 
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
+import com.alibaba.mesh.common.serialize.Serialization;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.Codec4;
 import com.alibaba.mesh.remoting.Keys;
@@ -61,6 +62,10 @@ public abstract class AbstractCodec implements Codec4 {
             channel.attr(Keys.SIDE_KEY).set(client ? "client" : "server");
             return client;
         }
+    }
+
+    protected Serialization getSerialization(URL url) {
+        return CodecSupport.getSerialization(url);
     }
 
 }

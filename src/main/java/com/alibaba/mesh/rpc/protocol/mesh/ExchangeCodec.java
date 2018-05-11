@@ -1,4 +1,4 @@
-package com.alibaba.mesh.remoting.exchange.codec;
+package com.alibaba.mesh.rpc.protocol.mesh;
 
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;

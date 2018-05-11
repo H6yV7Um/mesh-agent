@@ -36,8 +36,7 @@ public class HeaderExchanger implements Exchanger {
 
     @Override
     public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
-        // return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))), true);
-        throw new UnsupportedOperationException();
+         return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))), true);
     }
 
     @Override
