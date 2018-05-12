@@ -22,6 +22,7 @@ import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
+import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.transport.AbstractClient;
 
 import io.netty.bootstrap.Bootstrap;
@@ -30,6 +31,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
@@ -63,7 +65,8 @@ public class NettyClient extends AbstractClient {
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                //.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, getTimeout())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, getTimeout())
+                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, WriteBufferWaterMark.DEFAULT)
                 .channel(NioSocketChannel.class);
 
         if (getTimeout() < 3000) {
@@ -81,8 +84,6 @@ public class NettyClient extends AbstractClient {
                         .addLast("encoder", adapter.getEncoder())
                         .addLast("handler", nettyClientHandler);
             }
-
-
         });
     }
 
@@ -91,7 +92,7 @@ public class NettyClient extends AbstractClient {
         long start = System.currentTimeMillis();
         ChannelFuture future = bootstrap.connect(getConnectAddress());
         try {
-            boolean ret = future.awaitUninterruptibly(3000, TimeUnit.MILLISECONDS);
+            boolean ret = future.awaitUninterruptibly(getTimeout(), TimeUnit.MILLISECONDS);
 
             if (ret && future.isSuccess()) {
                 Channel newChannel = future.channel();

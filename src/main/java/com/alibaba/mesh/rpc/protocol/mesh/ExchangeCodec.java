@@ -287,7 +287,8 @@ public abstract class ExchangeCodec extends AbstractCodec {
         if (req.isEvent()) {
             encodeEventData(ctx, buffer, req.getData());
         } else {
-            codeable.encode(ctx, buffer, req.getData());
+            // consumer side request contains same payload
+            codeable.encode(ctx, buffer, req);
         }
 
         int len = buffer.writerIndex() - readyWriteIndex;

@@ -23,11 +23,13 @@ import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Client;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
+import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeClient;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.netty.SendRequestCommand;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -58,13 +60,16 @@ public class HeaderExchangeClient implements ExchangeClient {
     private int heartbeat;
     private int heartbeatTimeout;
 
+    private WriteQueue writeQueue;
+
     public HeaderExchangeClient(Client client, boolean needHeartbeat) {
         if (client == null) {
             throw new IllegalArgumentException("client == null");
         }
         this.client = client;
         this.channel = client.getChannel();
-        String dubbo = client.getUrl().getParameter(Constants.DUBBO_VERSION_KEY);
+        this.writeQueue = new WriteQueue(channel);
+        String dubbo = client.getUrl().getParameter(Constants.MESH_VERSION_KEY);
         this.heartbeat = client.getUrl().getParameter(Constants.HEARTBEAT_KEY, dubbo != null && dubbo.startsWith("1.0.") ? Constants.DEFAULT_HEARTBEAT : 0);
         this.heartbeatTimeout = client.getUrl().getParameter(Constants.HEARTBEAT_TIMEOUT_KEY, heartbeat * 3);
         if (heartbeatTimeout < heartbeat * 2) {
@@ -91,25 +96,29 @@ public class HeaderExchangeClient implements ExchangeClient {
         req.setTwoWay(true);
         req.setData(message);
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
-        channel.write(req).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture ft) throws Exception {
-                if (ft.isCancelled()) {
-                    future.cancel();
-                    return;
-                }
 
-                if (!ft.isSuccess()) {
-                    logger.error("failed to request message " + message, ft.cause());
-                    Response response = new Response(req.getId());
-                    response.setStatus(Response.CLIENT_ERROR);
-                    response.setResult(ft.cause());
-                    response.setErrorMessage("failed to reqeuest message " + message);
-                    DefaultFuture.received(channel, response);
-                }
+        writeQueue.enqueue(new SendRequestCommand(req, channel.newPromise().addListener(
+                new ChannelFutureListener() {
 
-            }
-        });
+                    @Override
+                    public void operationComplete(ChannelFuture ft) throws Exception {
+                        if (ft.isCancelled()) {
+                            future.cancel();
+                            return;
+                        }
+
+                        if (!ft.isSuccess()) {
+                            logger.error("failed to request message " + message, ft.cause());
+                            Response response = new Response(req.getId());
+                            response.setStatus(Response.CLIENT_ERROR);
+                            response.setResult(ft.cause());
+                            response.setErrorMessage("failed to reqeuest message " + message);
+                            DefaultFuture.received(channel, response);
+                        }
+                    }
+                }
+        )), true);
+
         return future;
     }
 
@@ -127,24 +136,29 @@ public class HeaderExchangeClient implements ExchangeClient {
         req.setTwoWay(true);
         req.setData(message);
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
-        channel.write(req).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture ft) throws Exception {
 
-                if (ft.isCancelled()) {
-                    future.cancel();
-                    return;
-                }
+        writeQueue.enqueue(new SendRequestCommand(message, channel.newPromise().addListener(
+                new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture ft) throws Exception {
 
-                long elapsed = System.currentTimeMillis() - start;
-                if (elapsed > timeout) {
-                    Response response = new Response(req.getId());
-                    response.setStatus(Response.SERVER_TIMEOUT);
-                    response.setErrorMessage("server side timeout, elapsed: " + elapsed + " ms");
-                    DefaultFuture.received(channel, response);
+                        if (ft.isCancelled()) {
+                            future.cancel();
+                            return;
+                        }
+
+                        long elapsed = System.currentTimeMillis() - start;
+                        if (elapsed > timeout) {
+                            Response response = new Response(req.getId());
+                            response.setStatus(Response.SERVER_TIMEOUT);
+                            response.setErrorMessage("server side timeout, elapsed: " + elapsed + " ms");
+                            DefaultFuture.received(channel, response);
+                        }
+
+                    }
                 }
-            }
-        });
+        )), true);
+
         return future;
     }
 
@@ -174,14 +188,17 @@ public class HeaderExchangeClient implements ExchangeClient {
         req.setTwoWay(false);
         req.setData(message);
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
-        channel.write(req).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture ft) throws Exception {
-                if (!ft.isSuccess()) {
-                    logger.error("failed to request message " + message, ft.cause());
+
+        writeQueue.enqueue(new SendRequestCommand(message, channel.newPromise().addListener(
+                new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture ft) throws Exception {
+                        if (!ft.isSuccess()) {
+                            logger.error("failed to request message " + message, ft.cause());
+                        }
+                    }
                 }
-            }
-        });
+        )), true);
     }
 
     @Override

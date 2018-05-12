@@ -1,0 +1,1 @@
+failover=com.alibaba.mesh.rpc.cluster.support.FailoverCluster

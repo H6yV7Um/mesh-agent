@@ -73,12 +73,6 @@ public class MeshProtocol extends AbstractProtocol {
     private ExchangeHandler requestHandler = new ExchangeHandlerSupportAdapter() {
 
         @Override
-        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws RemotingException {
-            // ready to write mesh client
-            ctx.write(msg, promise);
-        }
-
-        @Override
         public void channelWritabilityChanged(ChannelHandlerContext ctx) throws RemotingException {
             if(ctx.channel().isWritable()){
                 ctx.flush();

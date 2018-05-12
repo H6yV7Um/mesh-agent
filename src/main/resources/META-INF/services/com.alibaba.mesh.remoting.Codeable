@@ -1,0 +1,1 @@
+dubbo=com.alibaba.mesh.remoting.transport.codec.dubbo.DubboCodable

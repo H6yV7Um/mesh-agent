@@ -57,7 +57,7 @@ public class CodecSupport {
         }
 
         Set<String> supportedCodeables = ExtensionLoader.getExtensionLoader(Codeable.class).getSupportedExtensions();
-        for (String name : supportedExtensions) {
+        for (String name : supportedCodeables) {
             Codeable codeable = ExtensionLoader.getExtensionLoader(Codeable.class).getExtension(name);
             byte idByte = codeable.getCodecTypeId();
             if (ID_CODEABLE_MAP.containsKey(idByte)) {
@@ -81,7 +81,7 @@ public class CodecSupport {
 
     public static Serialization getSerialization(URL url) {
         return ExtensionLoader.getExtensionLoader(Serialization.class).getExtension(
-                url.getParameter(Constants.SERIALIZATION_KEY, Constants.DEFAULT_REMOTING_SERIALIZATION));
+                url.getParameter(Constants.SERIALIZATION_KEY, Constants.DEFAULT_HTTP_SERIALIZATION));
     }
 
     public static Codeable getCodeableById(Byte id) {
@@ -90,7 +90,7 @@ public class CodecSupport {
 
     public static Codeable getCodeable(URL url) {
         return ExtensionLoader.getExtensionLoader(Codeable.class).getExtension(
-                url.getParameter(Constants.CODEC_KEY, Constants.DEFAULT_REMOTING_CODEC));
+                url.getParameter(Constants.CODEABLE_KEY, Constants.DEFAULT_REMOTING_CODEC));
     }
 
     public static Serialization getSerialization(URL url, Byte id) throws IOException {

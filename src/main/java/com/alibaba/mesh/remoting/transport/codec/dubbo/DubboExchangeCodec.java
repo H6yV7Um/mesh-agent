@@ -59,10 +59,10 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
     public Object decode(ChannelHandlerContext ctx, ByteBuf buffer) throws IOException {
         int readable = buffer.readableBytes(),
                 received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
-        // set index to message body
-        buffer.readerIndex(buffer.readerIndex() + received);
         // maybe call retain() ??
         ByteBuf header = buffer.slice(buffer.readerIndex(), received);
+        // set index to message body
+        buffer.readerIndex(buffer.readerIndex() + received);
         return decode(ctx, buffer, readable, header);
     }
 

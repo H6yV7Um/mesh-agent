@@ -67,9 +67,9 @@ public class ClusterUtils {
         }
         if (remoteMap != null && remoteMap.size() > 0) {
             // Use version passed from provider side
-            String mesh = remoteMap.get(Constants.DUBBO_VERSION_KEY);
+            String mesh = remoteMap.get(Constants.MESH_VERSION_KEY);
             if (mesh != null && mesh.length() > 0) {
-                map.put(Constants.DUBBO_VERSION_KEY, mesh);
+                map.put(Constants.MESH_VERSION_KEY, mesh);
             }
             String version = remoteMap.get(Constants.VERSION_KEY);
             if (version != null && version.length() > 0) {

@@ -939,9 +939,9 @@ public class ExtensionLoader<T> {
             codeBuilder.append("\n}");
         }
         codeBuilder.append("\n}");
-        if (logger.isDebugEnabled()) {
-            logger.debug(codeBuilder.toString());
-        }
+        // if (logger.isDebugEnabled()) {
+        //     logger.debug(codeBuilder.toString());
+        // }
         return codeBuilder.toString();
     }
 

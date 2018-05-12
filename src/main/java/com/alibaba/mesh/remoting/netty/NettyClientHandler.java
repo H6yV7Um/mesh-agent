@@ -18,6 +18,8 @@ package com.alibaba.mesh.remoting.netty;
 
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.remoting.ChannelHandler;
+import com.alibaba.mesh.remoting.Keys;
+import com.alibaba.mesh.remoting.WriteQueue;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -47,6 +49,7 @@ public class NettyClientHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.channel().attr(Keys.URL_KEY).set(url);
         handler.channelActive(ctx);
     }
 
@@ -70,13 +73,6 @@ public class NettyClientHandler extends ChannelDuplexHandler {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         handler.write(ctx, msg, promise);
-    }
-
-    @Override
-    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
-        if(!ctx.channel().isWritable()){
-            ctx.flush();
-        }
     }
 
     @Override

@@ -7,7 +7,7 @@ import com.alibaba.mesh.common.io.UnsafeByteArrayInputStream;
 import com.alibaba.mesh.common.serialize.ObjectInput;
 import com.alibaba.mesh.common.serialize.ObjectOutput;
 import com.alibaba.mesh.common.serialize.Serialization;
-import com.alibaba.mesh.common.utils.ReflectUtils;
+import com.alibaba.mesh.common.utils.RpcUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Keys;
@@ -145,17 +145,17 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         return new byte[]{};
     }
 
-
-    protected void encodeRequestData(Channel channel, ObjectOutput out, Object data) throws IOException {
+    protected void encodeRequestData(ChannelHandlerContext ctx, ObjectOutput out, Object data) throws IOException {
         RpcInvocation inv = (RpcInvocation) data;
 
-        out.writeUTF(inv.getAttachment(Constants.DUBBO_VERSION_KEY, DUBBO_VERSION));
+        out.writeUTF(inv.getAttachment(Constants.MESH_VERSION_KEY, DUBBO_VERSION));
         out.writeUTF(inv.getAttachment(Constants.PATH_KEY));
         out.writeUTF(inv.getAttachment(Constants.VERSION_KEY));
 
-        out.writeUTF(inv.getMethodName());
-        out.writeUTF(ReflectUtils.getDesc(inv.getParameterTypes()));
-        Object[] args = inv.getArguments();
+        out.writeUTF(RpcUtils.getMethodName(inv));
+        // should be like Ljava.lang.String;
+        out.writeUTF(((String[])inv.getArguments()[1])[0]);
+        Object[] args = (Object[]) inv.getArguments()[2];
         if (args != null)
             for (int i = 0; i < args.length; i++) {
                 out.writeObject(args[i]);
@@ -163,7 +163,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         out.writeObject(inv.getAttachments());
     }
 
-    protected void encodeResponseData(Channel channel, ObjectOutput out, Object data) throws IOException {
+    protected void encodeResponseData(ChannelHandlerContext ctx, ObjectOutput out, Object data) throws IOException {
         Result result = (Result) data;
 
         Throwable th = result.getException();
@@ -210,10 +210,10 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         int readable = buffer.readableBytes(),
                 received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
 
-        // set index to message body
-        buffer.readerIndex(buffer.readerIndex() + received);
         // maybe call retain() ??
         ByteBuf header = buffer.slice(buffer.readerIndex(), received);
+        // set index to message body
+        buffer.readerIndex(buffer.readerIndex() + received);
 
         // check magic number.
         if (readable > 0 && header.getByte(0) != MAGIC_HIGH
@@ -258,6 +258,8 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        return buffer.readerIndex(readerIndex);
+        ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).slice(readerIndex, tt).retain();
+        buffer.readerIndex(readerIndex + tt);
+        return unresolvedBuffer;
     }
 }

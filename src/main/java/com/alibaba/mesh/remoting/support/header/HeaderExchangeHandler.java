@@ -22,13 +22,17 @@ import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.ExecutionException;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
+import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.netty.SendRequestCommand;
 import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
@@ -40,6 +44,8 @@ import java.net.InetSocketAddress;
  * ExchangeReceiver
  */
 public class HeaderExchangeHandler extends AbstractChannelHandler {
+
+    public WriteQueue writeQueue;
 
     protected static final Logger logger = LoggerFactory.getLogger(HeaderExchangeHandler.class);
 
@@ -54,7 +60,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
     }
 
     private static boolean isClientSide(Channel channel) {
-        InetSocketAddress address = (InetSocketAddress)channel.remoteAddress();
+        InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
         URL url = channel.attr(Keys.URL_KEY).get();
         return url.getPort() == address.getPort() &&
                 NetUtils.filterLocalHost(url.getIp())
@@ -95,6 +101,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws RemotingException {
+        this.writeQueue = new WriteQueue(ctx.channel());
         Channel channel = ctx.channel();
         channel.attr(Keys.READ_TIMESTAMP).set(System.currentTimeMillis());
         channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
@@ -115,13 +122,19 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         Channel channel = ctx.channel();
         try {
             channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
+            writeQueue.enqueue(new SendRequestCommand(message,
+                    promise.addListener(new ChannelFutureListener() {
+                        @Override
+                        public void operationComplete(ChannelFuture future) throws Exception {
+                            if (message instanceof Request) {
+                                Request request = (Request) message;
+                                DefaultFuture.sent(channel, request);
+                            }
+                        }
+                    })), false);
             handler.write(ctx, message, promise);
         } catch (Throwable t) {
             exception = t;
-        }
-        if (message instanceof Request) {
-            Request request = (Request) message;
-            DefaultFuture.sent(channel, request);
         }
         if (exception != null) {
             if (exception instanceof RuntimeException) {
@@ -147,7 +160,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
             } else {
                 if (request.isTwoWay()) {
                     Response response = handleRequest(ctx, request);
-                    if(response != null){
+                    if (response != null) {
                         ctx.write(response);
                     }
                 } else {
@@ -159,6 +172,8 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         } else {
             handler.channelRead(ctx, message);
         }
+
+        writeQueue.scheduleFlush();
     }
 
     @Override
@@ -172,7 +187,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
                     Response res = new Response(req.getId(), req.getVersion());
                     res.setStatus(Response.SERVER_ERROR);
                     res.setErrorMessage(StringUtils.toString(e));
-                    ctx.writeAndFlush(res);
+                    writeQueue.enqueue(new SendRequestCommand(res, ctx.voidPromise()), true);
                     return;
                 }
             }

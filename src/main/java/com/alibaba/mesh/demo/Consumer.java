@@ -18,6 +18,9 @@ package com.alibaba.mesh.demo;
 
 import com.alibaba.mesh.container.ContainerMain;
 import com.alibaba.mesh.container.spring.SpringContainer;
+import com.alibaba.mesh.remoting.exchange.ResponseCallback;
+import com.alibaba.mesh.rpc.RpcContext;
+import com.alibaba.mesh.rpc.service.GenericService;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -47,15 +50,26 @@ public class Consumer {
 
         public void init(){
 
-            IHelloService demoService = context.getBean(IHelloService.class);
+            GenericService demoService = (GenericService)context.getBean("helloService");
 
             while (true) {
                 try {
                     Thread.sleep(1000);
                     // call remote method
-                    int hash = demoService.hash("world");
+                    demoService.$invoke("hash", new String[] { "Ljava/lang/String;" }, new Object[] { "World" });
                     // get result
-                    System.out.println(hash);
+                    RpcContext.getContext().getResponseFuture().setCallback(new ResponseCallback(){
+
+                        @Override
+                        public void done(Object response) {
+                            System.out.println("invoke successfully, response: " + response);
+                        }
+
+                        @Override
+                        public void caught(Throwable exception) {
+
+                        }
+                    });
 
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();

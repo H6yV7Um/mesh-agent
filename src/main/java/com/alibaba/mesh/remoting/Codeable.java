@@ -1,5 +1,7 @@
 package com.alibaba.mesh.remoting;
 
+import com.alibaba.mesh.common.extension.SPI;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -8,6 +10,7 @@ import java.io.IOException;
 /**
  * @author yiji
  */
+@SPI("dubbo")
 public interface Codeable extends Codec4 {
 
     byte getCodecTypeId();

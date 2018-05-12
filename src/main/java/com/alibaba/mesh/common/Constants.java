@@ -95,7 +95,7 @@ public class Constants {
 
     public static final String DEFAULT_REMOTING_CLIENT = "netty";
 
-    public static final String DEFAULT_REMOTING_CODEC = "mesh";
+    public static final String DEFAULT_REMOTING_CODEC = "dubbo";
 
     public static final String DEFAULT_REMOTING_SERIALIZATION = "hessian2";
 
@@ -265,6 +265,10 @@ public class Constants {
 
     public static final String CODEC_KEY = "codec";
 
+    public static final String CODEABLE_KEY = "codeable";
+
+    public static final String CODEABLE_DUBBO_KEY = "dubbo";
+
     public static final String SERIALIZATION_KEY = "serialization";
 
     public static final String EXTENSION_KEY = "extension";
@@ -344,8 +348,6 @@ public class Constants {
     public static final String VERSION_KEY = "version";
 
     public static final String REVISION_KEY = "revision";
-
-    public static final String DUBBO_VERSION_KEY = "mesh";
 
     public static final String MESH_VERSION_KEY = "mesh";
 

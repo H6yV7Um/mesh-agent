@@ -82,7 +82,7 @@ public class DecodeableRpcInvocation extends RpcInvocation implements Decodeable
         in = CodecSupport.getSerialization(url, serializationType)
                 .deserialize(url, input);
 
-        setAttachment(Constants.DUBBO_VERSION_KEY, in.readUTF());
+        setAttachment(Constants.MESH_VERSION_KEY, in.readUTF());
         setAttachment(Constants.PATH_KEY, in.readUTF());
         setAttachment(Constants.VERSION_KEY, in.readUTF());
 

@@ -71,7 +71,7 @@ final class HeartBeatTask implements Runnable {
                         req.setVersion("2.0.0");
                         req.setTwoWay(true);
                         req.setEvent(Request.HEARTBEAT_EVENT);
-                        channel.write(req);
+                        channel.writeAndFlush(req, channel.voidPromise());
                         if (logger.isDebugEnabled()) {
                             logger.debug("Send heartbeat to remote channel " + channel.remoteAddress()
                                     + ", cause: The channel has no data-transmission exceeds a heartbeat period: " + heartbeat + "ms");
