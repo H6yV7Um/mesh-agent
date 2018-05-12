@@ -5,18 +5,21 @@ import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.extension.ExtensionLoader;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Codeable;
+import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -39,7 +42,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     private ChannelFuture future;
 
-    private Codeable codec;
+    private Codeable codeable;
 
     private HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
 
@@ -53,7 +56,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         this.url = url;
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
         this.handler = handler;
-        this.codec = getChannelCodec(url);
+        this.codeable = getChannelCodec(url);
         if(timeout < 3000) timeout = 3000;
     }
 
@@ -63,6 +66,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         this.serverCtx = ctx;
         this.writeQueue = new WriteQueue(ctx.channel());
         handler.channelActive(ctx);
+
+        ctx.channel().attr(Keys.URL_KEY).set(url);
 
         int port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
         if(port < 0) throw new IllegalArgumentException("endpoint port is required, port '" + port + "'");
@@ -77,31 +82,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
                 .channel(NioSocketChannel.class);
 
-        bootstrap.handler(new ChannelInitializer() {
-
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codec, url);;
-                ch.pipeline()
-                        .addLast("decoder", adapter.getDecoder())
-                        .addLast( "handler" , this);
-            }
-
-            @Override
-            public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
-
-                // received message from endpoint
-                Response response = (Response)message;
-                Request request = requestIdMap.remove(response.getRemoteId());
-
-                if(request != null) {
-                    response.setId(request.getId());
-                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
-                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
-                }
-
-            }
-        });
+        bootstrap.handler(new RemoteChannelInitializer());
 
         future = bootstrap.connect(host, port);
         future.addListener(new ChannelFutureListener() {
@@ -122,6 +103,9 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         this.writeToEndpoint = new WriteQueue(future.channel());
     }
 
+    /**
+     *  We will receive message from mesh consumer side.
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Request request = (Request)msg;
@@ -147,5 +131,43 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     protected static Codeable getChannelCodec(URL url) {
         String codecName = url.getParameter(Constants.ENDPOINT_NAME_KEY, "dubbo");
         return ExtensionLoader.getExtensionLoader(Codeable.class).getExtension(codecName);
+    }
+
+    class RemoteChannelInitializer extends ChannelInitializer {
+
+        @Override
+        protected void initChannel(Channel ch) throws Exception {
+            NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codeable, url);;
+            ch.pipeline()
+                    .addLast("remote-decoder", adapter.getDecoder())
+                    .addLast("remote-inbound", new RemoteInboundChannelHandler());
+        }
+    }
+
+    class RemoteInboundChannelHandler extends ChannelInboundHandlerAdapter {
+        /**
+         *  We will receive message response from remote enpont(eg dubbo)
+         */
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
+            // received message from endpoint
+            ByteBuf payload = (ByteBuf)message;
+
+            long remoteId = codeable.getRequestId(payload);
+            Request request = requestIdMap.remove(remoteId);
+
+            if(request != null) {
+                Response response = new Response(request.getId());
+                response.setStatus(codeable.getStatus(payload));
+                if(codeable.isEvent(payload)){
+                    response.setEvent(null);
+                }
+
+                response.setId(request.getId());
+                response.setResult(payload);
+                NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                        NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
+            }
+        }
     }
 }

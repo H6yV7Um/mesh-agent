@@ -52,6 +52,8 @@ public class Consumer {
 
             GenericService demoService = (GenericService)context.getBean("helloService");
 
+            int invokeOnlyOnce = 0;
+
             while (true) {
                 try {
                     Thread.sleep(1000);
@@ -70,6 +72,8 @@ public class Consumer {
 
                         }
                     });
+
+                    break;
 
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();

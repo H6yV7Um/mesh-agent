@@ -19,7 +19,6 @@ package com.alibaba.mesh.remoting.support.header;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
-import com.alibaba.mesh.remoting.ExecutionException;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
@@ -27,12 +26,9 @@ import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.remoting.netty.SendRequestCommand;
 import com.alibaba.mesh.remoting.transport.AbstractChannelHandler;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.slf4j.Logger;
@@ -122,16 +118,16 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         Channel channel = ctx.channel();
         try {
             channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
-            writeQueue.enqueue(new SendRequestCommand(message,
-                    promise.addListener(new ChannelFutureListener() {
-                        @Override
-                        public void operationComplete(ChannelFuture future) throws Exception {
-                            if (message instanceof Request) {
-                                Request request = (Request) message;
-                                DefaultFuture.sent(channel, request);
-                            }
-                        }
-                    })), false);
+//            writeQueue.enqueue(new SendRequestCommand(message,
+//                    promise.addListener(new ChannelFutureListener() {
+//                        @Override
+//                        public void operationComplete(ChannelFuture future) throws Exception {
+//                            if (message instanceof Request) {
+//                                Request request = (Request) message;
+//                                DefaultFuture.sent(channel, request);
+//                            }
+//                        }
+//                    })), false);
             handler.write(ctx, message, promise);
         } catch (Throwable t) {
             exception = t;
@@ -178,20 +174,20 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable exception) throws RemotingException {
-        if (exception instanceof ExecutionException) {
-            ExecutionException e = (ExecutionException) exception;
-            Object msg = e.getRequest();
-            if (msg instanceof Request) {
-                Request req = (Request) msg;
-                if (req.isTwoWay() && !req.isHeartbeat()) {
-                    Response res = new Response(req.getId(), req.getVersion());
-                    res.setStatus(Response.SERVER_ERROR);
-                    res.setErrorMessage(StringUtils.toString(e));
-                    writeQueue.enqueue(new SendRequestCommand(res, ctx.voidPromise()), true);
-                    return;
-                }
-            }
-        }
+//        if (exception instanceof ExecutionException) {
+//            ExecutionException e = (ExecutionException) exception;
+//            Object msg = e.getRequest();
+//            if (msg instanceof Request) {
+//                Request req = (Request) msg;
+//                if (req.isTwoWay() && !req.isHeartbeat()) {
+//                    Response res = new Response(req.getId(), req.getVersion());
+//                    res.setStatus(Response.SERVER_ERROR);
+//                    res.setErrorMessage(StringUtils.toString(e));
+//                    writeQueue.enqueue(new SendRequestCommand(res, ctx.voidPromise()), true);
+//                    return;
+//                }
+//            }
+//        }
         handler.exceptionCaught(ctx, exception);
     }
 }

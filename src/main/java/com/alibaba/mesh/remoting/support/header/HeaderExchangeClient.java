@@ -137,7 +137,7 @@ public class HeaderExchangeClient implements ExchangeClient {
         req.setData(message);
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
 
-        writeQueue.enqueue(new SendRequestCommand(message, channel.newPromise().addListener(
+        writeQueue.enqueue(new SendRequestCommand(req, channel.newPromise().addListener(
                 new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture ft) throws Exception {
@@ -189,7 +189,7 @@ public class HeaderExchangeClient implements ExchangeClient {
         req.setData(message);
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
 
-        writeQueue.enqueue(new SendRequestCommand(message, channel.newPromise().addListener(
+        writeQueue.enqueue(new SendRequestCommand(req, channel.newPromise().addListener(
                 new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture ft) throws Exception {

@@ -11,7 +11,7 @@
     <mesh:codec name="dubbo"/>
 
     <mesh:referer interface="com.alibaba.mesh.demo.IHelloService"
-                  id="helloService" codec="dubbo" check="true"/>
+                  id="helloService" codec="dubbo" check="true" timeout="5000"/>
 
     <bean class="com.alibaba.mesh.demo.Consumer.DemoServiceConsumer" init-method="init"/>
 

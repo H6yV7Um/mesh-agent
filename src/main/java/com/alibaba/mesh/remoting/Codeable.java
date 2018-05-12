@@ -20,7 +20,13 @@ public interface Codeable extends Codec4 {
      * 获取解码的requestId，应该在fullDecode之后调用
      *
      */
-    long getRequestId(ByteBuf buffer);
+    long getRequestId(ByteBuf payload);
+
+    boolean isEvent(ByteBuf payload);
+
+    boolean isTwoWay(ByteBuf payload);
+
+    byte getStatus(ByteBuf payload);
 
     /**
      * 读取可以完整解码的字节报文

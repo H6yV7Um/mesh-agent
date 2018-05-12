@@ -34,7 +34,7 @@ import java.io.UnsupportedEncodingException;
 public abstract class ExchangeCodec extends AbstractCodec {
 
     // header length.
-    protected static final int HEADER_LENGTH = 24;
+    protected static final int HEADER_LENGTH = 21;
 
     // magic header.
     protected static final short MAGIC = (short) 0xdaba;
@@ -64,10 +64,10 @@ public abstract class ExchangeCodec extends AbstractCodec {
     public Object decode(ChannelHandlerContext ctx, ByteBuf buffer) throws IOException {
         int readable = buffer.readableBytes(),
         received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
-        // set index to message body
-        buffer.readerIndex(buffer.readerIndex() + received);
         // maybe call retain() ??
         ByteBuf header = buffer.slice(buffer.readerIndex(), received);
+        // set index to message body
+        buffer.readerIndex(buffer.readerIndex() + received);
         return decode(ctx, buffer, readable, header);
     }
 
@@ -109,8 +109,8 @@ public abstract class ExchangeCodec extends AbstractCodec {
         URL url = channel.attr(Keys.URL_KEY).get();
 
         // get data length.
-        int len = buffer.getInt(20);
-        checkPayload(url, channel, len);
+        int len = header.getInt(17);
+        // checkPayload(url, channel, len);
 
         int tt = len + HEADER_LENGTH;
         if (readable < tt) {
@@ -139,16 +139,17 @@ public abstract class ExchangeCodec extends AbstractCodec {
         // slot[3]
              codec = header.getByte(3);
 
-        Codeable codeable = CodecSupport.getCodeableById(codec);
+        Codeable codeable = CodecSupport.getCodeable(url);// .getCodeableById(codec);
         if(codeable == null) {
-            throw new UnsupportedEncodingException("Not found extension '" + url.getParameter(Constants.CODEC_KEY, Constants.DEFAULT_REMOTING_CODEC));
+            throw new UnsupportedEncodingException("Not found extension " + url.getParameter(Constants.CODEABLE_KEY, Constants.DEFAULT_REMOTING_CODEC));
         }
 
         // get request id.
-        // slot[12, 13, 14, 15, 16, 17, 18, 19]
-        long id = header.getLong(12);
+        // slot [9, 10, 11, 12, 13, 14, 15, 16]
+        long id = header.getLong(9);
         // get data length
-        int  len = header.getInt(20);
+        // slot [17]
+        int  len = header.getInt(17);
         if ((flag & FLAG_REQUEST) == 0) {
             // decode response.
             Response response = new Response(id);
@@ -178,11 +179,11 @@ public abstract class ExchangeCodec extends AbstractCodec {
                             data = codeable.decode(ctx, buffer);
                         }else {
                             // mesh server
-                            Object decodeBuffer = DecodeResult.NEED_MORE_INPUT;
-                            while ((decodeBuffer = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT){
-                                response.setRemoteId(codeable.getRequestId((ByteBuf) decodeBuffer));
+                            Object payload = DecodeResult.NEED_MORE_INPUT;
+                            while ((payload = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT){
+                                response.setRemoteId(codeable.getRequestId((ByteBuf) payload));
                             }
-                            data = buffer;
+                            data = payload;
                         }
                     }
                     response.setResult(data);
@@ -209,12 +210,14 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     data = decodeEventData(ctx, buffer);
                 } else {
                     // only copy client data
-                    ByteBuf tempBuf = buffer.slice(buffer.readerIndex(), len);
-                    int savedReaderIndex = tempBuf.readerIndex();
+                    ByteBuf payload = buffer.slice(buffer.readerIndex(), len).retain();
+                    int savedReaderIndex = payload.readerIndex();
                     if(!isClientSide(url, ctx.channel())) {
-                        request.setRemoteId(codeable.getRequestId(tempBuf));
+                        request.setRemoteId(codeable.getRequestId(payload));
                     }
-                    data = tempBuf.readerIndex(savedReaderIndex);
+                    data = payload;
+                    // eat resolved payload
+                    buffer.readerIndex(buffer.readerIndex() + payload.readableBytes());
                 }
                 request.setData(data);
             } catch (Throwable t) {
@@ -272,11 +275,11 @@ public abstract class ExchangeCodec extends AbstractCodec {
         header.writeInt(url.getParameter(Constants.TIMEOUT_KEY, 0));
 
         // skip status 4 byte
-        // slot [8, 9, 10, 11] (header.writerIndex() + 4)
-        header.writerIndex(12);
+        // slot [8] (header.writerIndex() + 1)
+        header.writerIndex(9);
 
         // set request id.
-        // slot [12, 13, 14, 15, 16, 17, 18, 19]
+        // slot [9, 10, 11, 12, 13, 14, 15, 16]
         header.writeLong(req.getId());
 
         // encode request data.
@@ -292,8 +295,10 @@ public abstract class ExchangeCodec extends AbstractCodec {
         }
 
         int len = buffer.writerIndex() - readyWriteIndex;
-        checkPayload(url, channel, len);
-        header.setInt(20, len);
+        // checkPayload(url, channel, len);
+        // slot [17, 18, 19 , 20]
+        header.writeInt(len);
+
         // write
         buffer.writerIndex(savedWriteIndex);
         buffer.writeBytes(header); // write header.
@@ -322,7 +327,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
             // slot [3]
             header.writerIndex(4);
 
-            int weight = 0;
+            int weight = 100;
             if(!isClientSide(url, channel)){
                 // weight = ...
             }
@@ -332,12 +337,12 @@ public abstract class ExchangeCodec extends AbstractCodec {
             header.writeInt(weight);
 
             // set response status.
-            // slot [8, 9, 10, 11]
+            // slot [8]
             byte status = response.getStatus();
-            header.writeInt(status);
+            header.writeByte(status);
 
             // set request id.
-            // slot [12, 13, 14, 15, 16, 17, 18, 19]
+            // slot [9, 10, 11, 12, 13, 14, 15, 16]
             header.writeLong(response.getId());
 
             int readyWriteIndex = savedWriteIndex + HEADER_LENGTH;
@@ -357,8 +362,9 @@ public abstract class ExchangeCodec extends AbstractCodec {
             }
 
             int len = buffer.writerIndex() - readyWriteIndex;
-            checkPayload(url, channel, len);
-            header.setInt(20, len);
+            // checkPayload(url, channel, len);
+            // slot [17, 18, 19 , 20]
+            header.writeInt(len);
             // write
             buffer.writerIndex(savedWriteIndex);
             buffer.writeBytes(header); // write header.

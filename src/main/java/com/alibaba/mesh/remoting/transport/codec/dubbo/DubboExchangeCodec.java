@@ -104,7 +104,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         URL url = channel.attr(Keys.URL_KEY).get();
         // get data length.
         int len = header.getInt(12);
-        checkPayload(url, channel, len);
+        // checkPayload(url, channel, len);
 
         int tt = len + HEADER_LENGTH;
         if (readable < tt) {
@@ -233,14 +233,17 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         bos.flush();
         bos.close();
         int len = bos.writtenBytes();
-        checkPayload(url, ctx.channel(), len);
+        // checkPayload(url, ctx.channel(), len);
         //Bytes.int2bytes(len, header, 12);
-        header.setInt(12, len);
+        // slot [12, 13, 14, 15]
+        header.writeInt(len);
 
         // write
         buffer.writerIndex(savedWriteIndex);
         buffer.writeBytes(header); // write header.
         buffer.writerIndex(savedWriteIndex + HEADER_LENGTH + len);
+
+        header.release();
     }
 
     protected void encodeResponse(ChannelHandlerContext ctx, ByteBuf buffer, Response response) throws IOException {
@@ -249,17 +252,18 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         try {
             Serialization serialization = getSerialization(url);
             // header.
-            byte[] header = new byte[HEADER_LENGTH];
+            ByteBuf header = ctx.alloc().buffer(HEADER_LENGTH);
             // set magic number.
-            Bytes.short2bytes(MAGIC, header);
+            header.writeShort(MAGIC);
             // set request and serialization flag.
-            header[2] = serialization.getContentTypeId();
-            if (response.isHeartbeat()) header[2] |= FLAG_EVENT;
+            header.writeByte(serialization.getContentTypeId());
+            if (response.isHeartbeat()) header.setByte(2, header.getByte(2) | FLAG_EVENT);
             // set response status.
             byte status = response.getStatus();
-            header[3] = status;
+            // slot [3]
+            header.writeByte(status);
             // set request id.
-            Bytes.long2bytes(response.getId(), header, 4);
+            header.writeLong(response.getId());
 
             buffer.writerIndex(savedWriteIndex + HEADER_LENGTH);
             ChannelBufferOutputStream bos = new ChannelBufferOutputStream(buffer);
@@ -277,12 +281,15 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
             bos.close();
 
             int len = bos.writtenBytes();
-            checkPayload(url, ctx.channel(), len);
-            Bytes.int2bytes(len, header, 12);
+            // checkPayload(url, ctx.channel(), len);
+            // slot [12, 13, 14, 15]
+            header.writeInt(len);
             // write
             buffer.writerIndex(savedWriteIndex);
             buffer.writeBytes(header); // write header.
             buffer.writerIndex(savedWriteIndex + HEADER_LENGTH + len);
+
+            header.release();
         } catch (Throwable t) {
             // clear buffer
             buffer.writerIndex(savedWriteIndex);

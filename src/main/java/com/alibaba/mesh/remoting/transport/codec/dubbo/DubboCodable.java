@@ -192,8 +192,23 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
      * @param buffer
      */
     @Override
-    public long getRequestId(ByteBuf buffer) {
-        return buffer.getLong(4);
+    public long getRequestId(ByteBuf payload) {
+        return payload.getLong(4);
+    }
+
+    @Override
+    public byte getStatus(ByteBuf payload) {
+        return payload.getByte(3);
+    }
+
+    @Override
+    public boolean isTwoWay(ByteBuf payload) {
+        return (payload.getByte(2) & FLAG_TWOWAY) != 0;
+    }
+
+    @Override
+    public boolean isEvent(ByteBuf payload) {
+        return (payload.getByte(2) & FLAG_EVENT) != 0;
     }
 
     /**
