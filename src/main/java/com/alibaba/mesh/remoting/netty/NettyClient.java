@@ -22,7 +22,6 @@ import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.transport.AbstractClient;
 
 import io.netty.bootstrap.Bootstrap;

@@ -19,7 +19,6 @@ package com.alibaba.mesh.remoting.netty;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Keys;
-import com.alibaba.mesh.remoting.WriteQueue;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
