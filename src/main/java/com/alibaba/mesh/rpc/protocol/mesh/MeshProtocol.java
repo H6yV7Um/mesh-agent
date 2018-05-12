@@ -42,7 +42,6 @@ import com.alibaba.mesh.rpc.protocol.AbstractProtocol;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -70,15 +69,9 @@ public class MeshProtocol extends AbstractProtocol {
     //consumer side export a stub service for dispatching event
     //servicekey-stubmethods
     private final ConcurrentMap<String, String> stubServiceMethodsMap = new ConcurrentHashMap<String, String>();
+
     private ExchangeHandler requestHandler = new ExchangeHandlerSupportAdapter() {
-
-        @Override
-        public void channelWritabilityChanged(ChannelHandlerContext ctx) throws RemotingException {
-            if(ctx.channel().isWritable()){
-                ctx.flush();
-            }
-        }
-
+        // NOOP Operation
     };
 
     public MeshProtocol() {

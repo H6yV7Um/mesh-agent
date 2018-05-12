@@ -6,6 +6,7 @@ import com.alibaba.mesh.common.extension.ExtensionLoader;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.RemotingException;
+import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
 
@@ -42,6 +43,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     private HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
 
+    private WriteQueue writeQueue;
+
+    private WriteQueue writeToEndpoint;
+
     private static final Logger logger = LoggerFactory.getLogger(NettyServerDeliveryHandler.class);
 
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
@@ -56,6 +61,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         this.serverCtx = ctx;
+        this.writeQueue = new WriteQueue(ctx.channel());
         handler.channelActive(ctx);
 
         int port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
@@ -78,7 +84,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codec, url);;
                 ch.pipeline()
                         .addLast("decoder", adapter.getDecoder())
-                        .addLast( "handler" , handler);
+                        .addLast( "handler" , this);
             }
 
             @Override
@@ -90,8 +96,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
                 if(request != null) {
                     response.setId(request.getId());
-                    NettyServerDeliveryHandler.this.serverCtx.write(response);
-                    handler.write(NettyServerDeliveryHandler.this.serverCtx, response, ctx.voidPromise());
+                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
                 }
 
             }
@@ -112,6 +118,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 }
             }
         });
+
+        this.writeToEndpoint = new WriteQueue(future.channel());
     }
 
     @Override
@@ -120,10 +128,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         requestIdMap.put(request.getRemoteId(), request);
         // received message from mesh consumer
         if(future.channel().isActive()) {
-            future.channel().writeAndFlush(request.getData());
+            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
         }else {
             if(future.awaitUninterruptibly(timeout) && future.isSuccess()){
-                future.channel().writeAndFlush(request.getData());
+                writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
             }else {
                 logger.warn("received message from mesh client but failed to connnect endpoint " + future.channel());
             }
