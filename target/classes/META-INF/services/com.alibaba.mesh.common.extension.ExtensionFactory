@@ -1,3 +1,0 @@
-adaptive=com.alibaba.mesh.common.extension.factory.AdaptiveExtensionFactory
-spring=com.alibaba.mesh.config.spring.SpringExtensionFactory
-spi=com.alibaba.mesh.common.extension.factory.SpiExtensionFactory
