@@ -9,6 +9,6 @@
     <mesh:registry address="etcd3://127.0.0.1:2379"/>
 
     <mesh:protocol port="30000"/>
-    <mesh:exporter interface="com.alibaba.mesh.demo.IHelloService" endpoint="dubbo"/>
+    <mesh:exporter interface="com.alibaba.dubbo.performance.demo.provider.IHelloService" endpoint="dubbo"/>
 
 </beans>

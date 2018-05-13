@@ -33,10 +33,13 @@ import com.alibaba.mesh.rpc.cluster.Cluster;
 import com.alibaba.mesh.rpc.cluster.support.ClusterUtils;
 import com.alibaba.mesh.rpc.service.GenericService;
 
+import org.springframework.beans.factory.FactoryBean;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +52,6 @@ import static com.alibaba.mesh.common.utils.NetUtils.isInvalidLocalHost;
  * RefererConfig
  *
  * @author yiji.github@hotmail.com
- *
  */
 public class RefererConfig<T> extends AbstractReferenceConfig {
 
@@ -167,10 +169,11 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
         if (initialized) {
             return;
         }
-        initialized = true;
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<mesh:refer interface=\"\" /> interface not allow null!");
         }
+
+        initialized = true;
 
         if (StringUtils.isEmpty(generic)) {
             generic = Boolean.TRUE.toString();
@@ -284,7 +287,7 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
                     }
                 }
                 if (urls == null || urls.isEmpty()) {
-                    throw new IllegalStateException("No such any registry to reference " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use agent version " + Version.getVersion() + ", please config <agent:registry address=\"...\" /> to your spring config.");
+                    throw new IllegalStateException("No such any registry to referer " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use mesh version " + Version.getVersion() + ", please config <mesh:registry address=\"...\" /> to your spring config.");
                 }
             }
 
@@ -299,7 +302,7 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
             throw new IllegalStateException("Failed to check the status of the service " + interfaceName + ". No provider available for the service " + (group == null ? "" : group + "/") + interfaceName + (version == null ? "" : ":" + version) + " from the url " + invoker.getUrl() + " to the consumer " + NetUtils.getLocalHost() + " use agent version " + Version.getVersion());
         }
         if (logger.isInfoEnabled()) {
-            logger.info("Refer agent service " + interfaceClass.getName() + " from url " + invoker.getUrl());
+            logger.info("Referer mesh service " + interfaceClass.getName() + " from url " + invoker.getUrl());
         }
         // create service proxy
         return (T) proxyFactory.getProxy(invoker);
@@ -409,4 +412,51 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
     public void setCodecConfig(CodecConfig codecConfig) {
         this.codecConfig = codecConfig;
     }
+//
+//    @Override
+//    public String toString() {
+//        try {
+//            StringBuilder buf = new StringBuilder();
+//            buf.append("<mesh:");
+//            buf.append(getTagName(getClass()));
+//            Method[] methods = getClass().getMethods();
+//            for (Method method : methods) {
+//                try {
+//                    String name = method.getName();
+//                    if ((name.startsWith("get") || name.startsWith("is"))
+//                            && !"getClass".equals(name) && !"get".equals(name) && !"is".equals(name)
+//                            && Modifier.isPublic(method.getModifiers())
+//                            && method.getParameterTypes().length == 0
+//                            && isPrimitive(method.getReturnType())) {
+//                        int i = name.startsWith("get") ? 3 : 2;
+//                        String key = name.substring(i, i + 1).toLowerCase() + name.substring(i + 1);
+//
+//                        /**
+//                         *  fix factory bean recursive calls getObject because of toString method,
+//                         *  causes the reference bean object to be initialized prematurely.
+//                         */
+//                        if(this instanceof FactoryBean && "object".equals(key)){
+//                            continue;
+//                        }
+//
+//                        Object value = method.invoke(this, new Object[0]);
+//                        if (value != null) {
+//                            buf.append(" ");
+//                            buf.append(key);
+//                            buf.append("=\"");
+//                            buf.append(value);
+//                            buf.append("\"");
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    logger.warn(e.getMessage(), e);
+//                }
+//            }
+//            buf.append(" />");
+//            return buf.toString();
+//        } catch (Throwable t) {
+//            logger.warn(t.getMessage(), t);
+//            return super.toString();
+//        }
+//    }
 }

@@ -110,7 +110,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     + NetUtils.getLocalHost()
                     + " use agent version "
                     + Version.getVersion()
-                    + ", Please add <agent:registry address=\"...\" /> to your spring config. If you want unregister, please set <agent:service registry=\"N/A\" />");
+                    + ", Please add <mesh:registry address=\"...\" /> to your spring config. If you want unregister, please set <mesh:exporter registry=\"N/A\" />");
         }
         for (RegistryConfig registryConfig : registries) {
             appendProperties(registryConfig);

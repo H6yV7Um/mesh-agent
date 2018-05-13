@@ -23,6 +23,10 @@
         <jetcd_core_version>0.0.2</jetcd_core_version>
         <spring_version>4.3.16.RELEASE</spring_version>
 
+        <boringssl_version>2.0.8.Final</boringssl_version>
+        <okhttp_version>3.10.0</okhttp_version>
+        <commons_lang3_version>3.7</commons_lang3_version>
+
         <maven_compiler_version>3.6.0</maven_compiler_version>
 
     </properties>
@@ -78,6 +82,23 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${boringssl_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp_version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons_lang3_version}</version>
         </dependency>
 
     </dependencies>

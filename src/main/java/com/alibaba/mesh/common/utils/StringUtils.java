@@ -454,4 +454,8 @@ public final class StringUtils {
         }
         return buf.toString();
     }
+
+    public static String nullToEmpty(String string) {
+        return (string == null) ? "" : string;
+    }
 }

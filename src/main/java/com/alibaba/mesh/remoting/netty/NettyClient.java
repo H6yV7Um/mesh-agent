@@ -22,6 +22,7 @@ import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.RemotingException;
+import com.alibaba.mesh.remoting.http2.NettyHttp2Server;
 import com.alibaba.mesh.remoting.transport.AbstractClient;
 
 import io.netty.bootstrap.Bootstrap;
@@ -46,21 +47,44 @@ public class NettyClient extends AbstractClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    private static final NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
+    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
 
     private Bootstrap bootstrap;
 
     private volatile Channel channel; // volatile, please copy reference to use
 
+    private static volatile boolean startedHttpServer = false;
+    private Thread httpServerThread;
+
     public NettyClient(final URL url, final ChannelHandler handler) throws RemotingException {
         super(url, wrapChannelHandler(url, handler));
+
+        // prepare http server
+        if(!startedHttpServer){
+            synchronized (NettyClient.class){
+                if(httpServerThread != null) return;
+                httpServerThread = new Thread("http-Server"){
+                    @Override
+                    public void run() {
+                        try{
+                            if(startedHttpServer) return;
+                            NettyHttp2Server.main(null);
+                            startedHttpServer = true;
+                        }catch (Exception e) {
+                            logger.error("Failed to start http server.", e);
+                        }
+                    }
+                };
+                httpServerThread.start();
+            }
+        }
     }
 
     @Override
     protected void doOpen() throws Throwable {
         final NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), this);
         bootstrap = new Bootstrap();
-        bootstrap.group(nioEventLoopGroup)
+        bootstrap.group(nioWorkerGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -125,7 +149,7 @@ public class NettyClient extends AbstractClient {
             }
         } finally {
             if (!isConnected()) {
-                //future.cancel(true);
+                future.cancel(true);
             }
         }
     }
@@ -137,8 +161,9 @@ public class NettyClient extends AbstractClient {
 
     @Override
     protected void doClose() throws Throwable {
-        //can't shutdown nioEventLoopGroup
-        //nioEventLoopGroup.shutdownGracefully();
+        //can't shutdown nioWorkerGroup
+        //nioWorkerGroup.shutdownGracefully();
+
     }
 
     @Override

@@ -27,9 +27,6 @@ public class Provider {
         // But you can pass use -Djava.net.preferIPv4Stack=true,then it work well whether in debug mode or not
         System.setProperty("java.net.preferIPv4Stack", "true");
 
-        // Enable shutdown gracefully feature
-        System.setProperty(ContainerMain.SHUTDOWN_HOOK_KEY, "true");
-
         // Search provider definition path
         System.setProperty(SpringContainer.SPRING_CONFIG, "META-INF/spring/mesh-provider.xml");
 

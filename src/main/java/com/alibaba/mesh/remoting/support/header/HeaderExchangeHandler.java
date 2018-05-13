@@ -118,7 +118,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         Channel channel = ctx.channel();
         try {
             channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
-//            writeQueue.enqueue(new SendRequestCommand(message,
+//            writeQueue.enqueue(new InvokeMethodCommand(message,
 //                    promise.addListener(new ChannelFutureListener() {
 //                        @Override
 //                        public void operationComplete(ChannelFuture future) throws Exception {
@@ -183,7 +183,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
 //                    Response res = new Response(req.getId(), req.getVersion());
 //                    res.setStatus(Response.SERVER_ERROR);
 //                    res.setErrorMessage(StringUtils.toString(e));
-//                    writeQueue.enqueue(new SendRequestCommand(res, ctx.voidPromise()), true);
+//                    writeQueue.enqueue(new InvokeMethodCommand(res, ctx.voidPromise()), true);
 //                    return;
 //                }
 //            }

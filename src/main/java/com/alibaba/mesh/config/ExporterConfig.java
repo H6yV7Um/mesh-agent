@@ -148,10 +148,10 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         if (exported) {
             return;
         }
-        exported = true;
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<mesh:export interface=\"\" /> interface not allow null!");
         }
+        exported = true;
         interfaceClass = GenericService.class;
 
         if (StringUtils.isEmpty(generic)) {

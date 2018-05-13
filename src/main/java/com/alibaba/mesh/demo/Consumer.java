@@ -19,6 +19,7 @@ package com.alibaba.mesh.demo;
 import com.alibaba.mesh.container.ContainerMain;
 import com.alibaba.mesh.container.spring.SpringContainer;
 import com.alibaba.mesh.remoting.exchange.ResponseCallback;
+import com.alibaba.mesh.remoting.http2.BeanLookup;
 import com.alibaba.mesh.rpc.RpcContext;
 import com.alibaba.mesh.rpc.service.GenericService;
 
@@ -34,9 +35,6 @@ public class Consumer {
         // But you can pass use -Djava.net.preferIPv4Stack=true,then it work well whether in debug mode or not
         System.setProperty("java.net.preferIPv4Stack", "true");
 
-        // Enable shutdown gracefully feature
-        System.setProperty(ContainerMain.SHUTDOWN_HOOK_KEY, "true");
-
         // Search provider definition path
         System.setProperty(SpringContainer.SPRING_CONFIG, "META-INF/spring/mesh-consumer.xml");
 
@@ -44,18 +42,23 @@ public class Consumer {
         ContainerMain.main(args);
     }
 
-    private final static class DemoServiceConsumer implements ApplicationContextAware {
+    private final static class LocalDebugOnly implements ApplicationContextAware {
 
-        private ApplicationContext context;
+        private static ApplicationContext context;
+
+        @Override
+        public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+            this.context = applicationContext;
+        }
 
         public void init(){
 
-            GenericService demoService = (GenericService)context.getBean("helloService");
-
+            GenericService demoService = (GenericService) context.getBean("delegate");
             int invokeOnlyOnce = 0;
 
             while (true) {
                 try {
+
                     Thread.sleep(1000);
                     // call remote method
                     demoService.$invoke("hash", new String[] { "Ljava/lang/String;" }, new Object[] { "World" });
@@ -79,11 +82,6 @@ public class Consumer {
                     throwable.printStackTrace();
                 }
             }
-        }
-
-        @Override
-        public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-            this.context = applicationContext;
         }
     }
 }

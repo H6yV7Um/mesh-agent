@@ -663,4 +663,16 @@ public class Constants {
     public static final String HTTP_SUBFIX_KEY = "://";
 
     public static final String HTTP_KEY        = "http://";
+
+    public static final String MAX_HTTP_CONTENT_BYTES_KEY = "max.http.content.bytes";
+
+    public static final int MAX_HTTP_CONTENT_BYTES = 16 * 1024;
+
+    public static final String SSL_ENABLE_KEY = "ssl.support";
+
+    public static final String SSL_CERTIFICATE_KEY = "ssl.certificate.path";
+
+    public static final String SSL_PRIVATE_KEY = "ssl.private.key.path";
+
+    public static final String SSL_PRIVATE_KEY_PASSWORD = "ssl.private.key.password";
 }
