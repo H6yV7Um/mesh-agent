@@ -625,11 +625,11 @@ public class Constants {
 
     public static final String AGENT_IP_TO_BIND = "AGENT_IP_TO_BIND";
 
-    public static final String AGENT_PORT_TO_BIND = "AGENT_PORT_TO_BIND";
+    public static final String AGENT_PORT_TO_BIND = "server.port";
 
     public static final String BIND_IP_KEY = "bind.ip";
 
-    public static final String BIND_PORT_KEY = "server.port";
+    public static final String BIND_PORT_KEY = "bind.port";
 
     public static final String ENDPOINT_HOST_KEY = "endpoint.host";
 

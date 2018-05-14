@@ -210,6 +210,13 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         }
 
         appendParameters(map, endPoint, Constants.ENDPOINT_KEY);
+
+        String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
+        // read port from env.
+        if(StringUtils.isNotEmpty(dubboPort)){
+            map.put(Constants.ENDPOINT_PORT_KEY, dubboPort);
+        }
+
         appendParameters(map, protocolConfig);
         appendParameters(map, this);
 
