@@ -2,3 +2,4 @@
 /.idea/
 /mesh-agent.iml
 /dependency-reduced-pom.xml
+/target/
