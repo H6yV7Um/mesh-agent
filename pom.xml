@@ -72,6 +72,16 @@
             <groupId>com.coreos</groupId>
             <artifactId>jetcd-core</artifactId>
             <version>${jetcd_core_version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-handler-proxy</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
