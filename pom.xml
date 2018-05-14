@@ -28,6 +28,7 @@
         <commons_lang3_version>3.7</commons_lang3_version>
 
         <maven_compiler_version>3.6.0</maven_compiler_version>
+        <maven_shade_version>3.1.1</maven_shade_version>
 
     </properties>
 
@@ -116,6 +117,87 @@
                     <target>${java_target_version}</target>
                     <encoding>${file_encoding}</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven_shade_version}</version>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/spring.handlers</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/spring.schemas</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/mesh.xsd</resource>
+                        </transformer>
+
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.common.compiler.Compiler</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.common.extension.DataStore</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.common.extension.ExtensionFactory</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.common.serialize.Serialization</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.container.Container</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.registry.RegistryFactory</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.remoting.Codeable</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.remoting.Codec4</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.remoting.etcd.EtcdTransporter</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.remoting.exchange.Exchanger</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.remoting.Transporter</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.rpc.cluster.Cluster</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.rpc.cluster.LoadBalance</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.rpc.Protocol</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>META-INF/services/com.alibaba.mesh.rpc.ProxyFactory</resource>
+                        </transformer>
+
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <manifestEntries>
+                                <Main-Class>com.alibaba.mesh.main.Main</Main-Class>
+                                <X-Compile-Source-JDK>${java_source_version}</X-Compile-Source-JDK>
+                                <X-Compile-Target-JDK>${java_target_version}</X-Compile-Target-JDK>
+                            </manifestEntries>
+                        </transformer>
+
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

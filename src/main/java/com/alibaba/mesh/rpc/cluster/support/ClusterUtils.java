@@ -88,7 +88,7 @@ public class ClusterUtils {
             if (remoteTimestamp != null && remoteTimestamp.length() > 0) {
                 map.put(Constants.REMOTE_TIMESTAMP_KEY, remoteMap.get(Constants.TIMESTAMP_KEY));
             }
-            // Combine filters and listeners on Provider and Consumer
+            // Combine filters and listeners on MeshProvider and MeshConsumer
             String remoteFilter = remoteMap.get(Constants.REFERENCE_FILTER_KEY);
             String localFilter = localMap.get(Constants.REFERENCE_FILTER_KEY);
             if (remoteFilter != null && remoteFilter.length() > 0

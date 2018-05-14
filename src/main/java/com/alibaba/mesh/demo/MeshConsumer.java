@@ -27,7 +27,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class Consumer {
+public class MeshConsumer {
 
     public static void main(String[] args) {
 

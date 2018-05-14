@@ -400,7 +400,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
     }
 
     /**
-     * Merge url parameters. the order is: override > -D >Consumer > Provider
+     * Merge url parameters. the order is: override > -D >MeshConsumer > MeshProvider
      *
      * @param providerUrl
      * @return

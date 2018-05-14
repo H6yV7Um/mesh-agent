@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * <li>default extension is an adaptive instance</li>
  * </ul>
  *
- * @see <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jar/jar.html#Service%20Provider">Service Provider in Java 5</a>
+ * @see <a href="http://java.sun.com/j2se/1.5.0/docs/guide/jar/jar.html#Service%20Provider">Service MeshProvider in Java 5</a>
  * @see com.alibaba.agent.common.extension.SPI
  * @see com.alibaba.agent.common.extension.Adaptive
  * @see com.alibaba.agent.common.extension.Activate

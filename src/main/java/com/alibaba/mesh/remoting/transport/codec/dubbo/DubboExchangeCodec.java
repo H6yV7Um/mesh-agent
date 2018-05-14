@@ -293,7 +293,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         } catch (Throwable t) {
             // clear buffer
             buffer.writerIndex(savedWriteIndex);
-            // send error message to Consumer, otherwise, Consumer will wait till timeout.
+            // send error message to MeshConsumer, otherwise, MeshConsumer will wait till timeout.
             if (!response.isEvent() && response.getStatus() != Response.BAD_RESPONSE) {
 //                Response r = new Response(response.getId(), response.getVersion());
 //                r.setStatus(Response.BAD_RESPONSE);

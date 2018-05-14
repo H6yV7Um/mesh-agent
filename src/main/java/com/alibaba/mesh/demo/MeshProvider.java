@@ -19,9 +19,9 @@ package com.alibaba.mesh.demo;
 import com.alibaba.mesh.container.ContainerMain;
 import com.alibaba.mesh.container.spring.SpringContainer;
 
-public class Provider {
+public class MeshProvider {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         // Prevent to get IPV6 address,this way only work in debug mode
         // But you can pass use -Djava.net.preferIPv4Stack=true,then it work well whether in debug mode or not

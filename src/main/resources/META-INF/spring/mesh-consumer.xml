@@ -13,7 +13,7 @@
 
     <!--  if uncomment, LocalDebugOnly will invoke
             com.alibaba.dubbo.performance.demo.provider.IHelloService#hash
-    <bean class="com.alibaba.mesh.demo.Consumer.LocalDebugOnly" init-method="init"/>
+    <bean class="com.alibaba.mesh.demo.MeshConsumerumer.LocalDebugOnly" init-method="init"/>
     -->
 
     <bean class="com.alibaba.mesh.remoting.http2.BeanLookup"/>

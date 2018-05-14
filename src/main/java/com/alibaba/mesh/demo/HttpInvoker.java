@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author yiji
  */
-public class HttpInvoke {
+public class HttpInvoker {
 
     private static OkHttpClient client;
 
