@@ -1,5 +1,6 @@
 package com.alibaba.mesh.remoting.http2;
 
+import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.netty.NettyClient;
@@ -24,7 +25,7 @@ public class NettyHttp2Server {
 
     public static void main(String[] args) throws Exception {
 
-        String port = System.getProperty("server.port", "20000");
+        String port = System.getProperty(Constants.BIND_PORT_KEY, "20000");
         if(StringUtils.isNotEmpty(port)){
             serverUrl.setPort(Integer.parseInt(port));
         }

@@ -3,6 +3,7 @@ package com.alibaba.mesh.remoting.netty;
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.extension.ExtensionLoader;
+import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Keys;
@@ -70,6 +71,12 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         ctx.channel().attr(Keys.URL_KEY).set(url);
 
         int port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
+        String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
+        // read port from env.
+        if(StringUtils.isNotEmpty(dubboPort)){
+            port = Integer.parseInt(dubboPort);
+        }
+
         if(port < 0) throw new IllegalArgumentException("endpoint port is required, port '" + port + "'");
         String host = url.getParameter(Constants.ENDPOINT_HOST_KEY, "127.0.0.1");
 
@@ -85,6 +92,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         bootstrap.handler(new RemoteChannelInitializer());
 
         future = bootstrap.connect(host, port);
+        int finalPort = port;
         future.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
@@ -94,7 +102,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 }else {
                     if(future.cause() != null){
                         throw new RemotingException(future.channel(), "mesh server(url: " + url + ") failed to connect to endpint "
-                                + host + ":" + port + ", error message is:" + future.cause().getMessage(), future.cause());
+                                + host + ":" + finalPort + ", error message is:" + future.cause().getMessage(), future.cause());
                     }
                 }
             }
