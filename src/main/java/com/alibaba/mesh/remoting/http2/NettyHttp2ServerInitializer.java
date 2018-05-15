@@ -13,6 +13,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.codec.http.HttpServerUpgradeHandler;
 import io.netty.handler.codec.http2.CleartextHttp2ServerUpgradeHandler;
 import io.netty.handler.codec.http2.Http2CodecUtil;
@@ -116,24 +117,16 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<NioSocketCha
     private void configureClearText(SocketChannel ch) {
 
         final ChannelPipeline p = ch.pipeline();
-        final HttpServerCodec sourceCodec = new HttpServerCodec();
-        final HttpServerUpgradeHandler upgradeHandler = new HttpServerUpgradeHandler(sourceCodec, upgradeCodecFactory);
-        final CleartextHttp2ServerUpgradeHandler cleartextHttp2ServerUpgradeHandler =
-                new CleartextHttp2ServerUpgradeHandler(sourceCodec, upgradeHandler,
-                        new NettyHttp2ServerHandlerBuilder().withURL(url).build());
-
-        p.addLast(cleartextHttp2ServerUpgradeHandler);
-        p.addLast(new SimpleChannelInboundHandler<HttpMessage>() {
-            @Override
-            protected void channelRead0(ChannelHandlerContext ctx, HttpMessage msg) throws Exception {
-                // If this handler is hit then no upgrade has been attempted and the client is just talking HTTP.
-                ChannelPipeline pipeline = ctx.pipeline();
-                ChannelHandlerContext thisCtx = pipeline.context(this);
-                pipeline.addAfter(thisCtx.name(), null, new NettyHttp1ServerHandler());
-                pipeline.replace(this, null, new HttpObjectAggregator(maxHttpContentLength));
-                ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-            }
-        });
+//        final HttpServerCodec sourceCodec = new HttpServerCodec();
+//        final HttpServerUpgradeHandler upgradeHandler = new HttpServerUpgradeHandler(sourceCodec, upgradeCodecFactory);
+//        final CleartextHttp2ServerUpgradeHandler cleartextHttp2ServerUpgradeHandler =
+//                new CleartextHttp2ServerUpgradeHandler(sourceCodec, upgradeHandler,
+//                        new NettyHttp2ServerHandlerBuilder().withURL(url).build());
+//
+//        p.addLast(cleartextHttp2ServerUpgradeHandler);
+        p.addLast(new HttpServerCodec());
+        p.addLast(new HttpObjectAggregator(65536));
+        p.addLast(new NettyHttp1ServerHandler());
     }
 
 }

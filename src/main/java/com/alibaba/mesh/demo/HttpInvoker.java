@@ -21,13 +21,17 @@ public class HttpInvoker {
 
     private static OkHttpClient client;
 
-    private static int invokeTimes = 1;
+    private static int invokeTimes = 10000;
+
+    private static int j = 0;
 
     public static void main(String[] args) throws Exception {
         init();
         for(int i = 0; i < invokeTimes; i++){
             invoke();
         }
+
+        System.out.println("Invoke times " + j + "/" + invokeTimes + "");
     }
 
     public static void init() {
@@ -73,6 +77,7 @@ public class HttpInvoker {
             if(hash != expectHash){
                 throw new RuntimeException("expected hash: " + expectHash + ", actual: " + hash);
             }
+            j++;
         }
     }
 

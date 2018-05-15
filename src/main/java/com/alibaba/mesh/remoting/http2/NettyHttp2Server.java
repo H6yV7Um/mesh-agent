@@ -40,7 +40,7 @@ public class NettyHttp2Server {
                     // .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new NettyHttp2ServerInitializer(serverUrl));
 
-            Channel ch = b.bind(DEFAULT_PORT).sync().channel();
+            Channel ch = b.bind(serverUrl.getPort()).sync().channel();
 
             ch.closeFuture().sync();
         } finally {

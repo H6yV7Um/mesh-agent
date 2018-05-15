@@ -1,6 +1,5 @@
 package com.alibaba.mesh.remoting.http2;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Response;
 import com.alibaba.mesh.remoting.exchange.ResponseCallback;
@@ -9,7 +8,6 @@ import com.alibaba.mesh.rpc.RpcResult;
 import com.alibaba.mesh.rpc.service.GenericService;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -18,14 +16,11 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.ByteProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
-
 import java.nio.charset.Charset;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
@@ -67,17 +62,18 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
 
         if (HttpUtil.is100ContinueExpected(request)) {
-            ctx.writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
-            return;
+            ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
 
         String parameter = null;
 
         ByteBuf body = request.content();
-        int readableBytes = body.readableBytes();
-        int index = body.readerIndex();
 
-        int i = body.forEachByte(new ByteProcessor() {
+        if(body.isReadable()) {
+            int readableBytes = body.readableBytes();
+            int index = body.readerIndex();
+
+            int i = body.forEachByte(new ByteProcessor() {
 
                 byte p, a, r, a0, m, e, t, e0, r0;
                 boolean next;
@@ -110,13 +106,15 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
                 }
             });
 
-        body.readerIndex(i + 2);
-        parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
+            body.readerIndex(i + 2);
 
-        // internel alreay used queue, we alse use response queue
-        delegate.$invoke("hash", parameterType, parameterValue);
-        RpcContext.getContext().getResponseFuture()
-                .setCallback(new ResponseCallbackImpl(ctx, request));
+            parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
+
+            // internel alreay used queue, we alse use response queue
+            delegate.$invoke("hash", parameterType, parameterValue);
+            RpcContext.getContext().getResponseFuture()
+                    .setCallback(new ResponseCallbackImpl(ctx, request));
+        }
     }
 
     @Override
