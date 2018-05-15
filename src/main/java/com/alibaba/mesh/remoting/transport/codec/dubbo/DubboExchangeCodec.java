@@ -70,28 +70,29 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         // check magic number.
         if (readable > 0 && header.getByte(0) != MAGIC_HIGH
                 || readable > 1 && header.getByte(1) != MAGIC_LOW) {
-            int length = header.readableBytes();
+            int length = header.readableBytes(), received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
             if (length < readable) {
-                header = buffer.slice(buffer.readerIndex(), readable);
+                header = buffer.slice(buffer.readerIndex() - received, readable);
             }
 
             int i = header.forEachByte(1, header.readableBytes() - 1, new ByteProcessor() {
-                Byte prev = null;
+                byte prev;
+
                 @Override
                 public boolean process(byte value) throws Exception {
-                    if(prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
                     prev = value;
                     return true;
                 }
             });
 
-            if(i != -1) {
+            if (i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - header.readableBytes() + i - 1);
-                header = buffer.slice(buffer.readerIndex(), i - 1);
+                buffer.readerIndex(buffer.readerIndex() - received + i);
+                header = buffer.slice(buffer.readerIndex(), i);
             }
 
-            return decode0(ctx, buffer, readable, header);
+            return DecodeResult.NEED_MORE_INPUT;
         }
 
         // check length.
@@ -212,7 +213,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         header.writeByte(FLAG_REQUEST | serialization.getContentTypeId());
 
         if (req.isTwoWay()) header.setByte(2, header.getByte(2) | FLAG_TWOWAY);
-        if (req.isEvent())  header.setByte(2, header.getByte(2) | FLAG_EVENT);
+        if (req.isEvent()) header.setByte(2, header.getByte(2) | FLAG_EVENT);
 
         // set request id.
         // Bytes.long2bytes(req.getId(), header, 4);
@@ -426,7 +427,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         encodeResponseData(out, data);
     }
 
-    protected Object decode0(ChannelHandlerContext ctx, ByteBuf buffer, int readable, ByteBuf header) throws IOException{
+    protected Object decode0(ChannelHandlerContext ctx, ByteBuf buffer, int readable, ByteBuf header) throws IOException {
         throw new IllegalArgumentException("failed to decode from channel " + ctx.channel()
                 + ", sub codec may be override decode0"
                 + " method to support this message type.");

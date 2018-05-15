@@ -76,28 +76,29 @@ public abstract class ExchangeCodec extends AbstractCodec {
         // check magic number.
         if (readable > 0 && header.getByte(0) != MAGIC_HIGH
                 || readable > 1 && header.getByte(1) != MAGIC_LOW) {
-            int length = header.readableBytes();
+            int length = header.readableBytes(), received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
             if (length < readable) {
-                header = buffer.slice(buffer.readerIndex(), readable);
+                header = buffer.slice(buffer.readerIndex() - received, readable);
             }
 
             int i = header.forEachByte(1, header.readableBytes() - 1, new ByteProcessor() {
-                        Byte prev = null;
-                        @Override
-                        public boolean process(byte value) throws Exception {
-                            if(prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
-                            prev = value;
-                            return true;
-                        }
-                    });
+                byte prev;
 
-            if(i != -1) {
+                @Override
+                public boolean process(byte value) throws Exception {
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    prev = value;
+                    return true;
+                }
+            });
+
+            if(i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - header.readableBytes() + i - 1);
-                header = buffer.slice(buffer.readerIndex(), i - 1);
+                buffer.readerIndex(buffer.readerIndex() - received + i);
+                header = buffer.slice(buffer.readerIndex(), i);
             }
 
-            return decode0(ctx, buffer, readable, header);
+            return DecodeResult.NEED_MORE_INPUT;
         }
         // check length.
         if (readable < HEADER_LENGTH) {
