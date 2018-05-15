@@ -67,10 +67,10 @@ public class HeaderExchangeServer implements ExchangeServer {
         }
         this.server = server;
         this.heartbeat = server.getUrl().getParameter(Constants.HEARTBEAT_KEY, 0);
-        this.heartbeatTimeout = server.getUrl().getParameter(Constants.HEARTBEAT_TIMEOUT_KEY, heartbeat * 3);
-        if (heartbeatTimeout < heartbeat * 2) {
-            throw new IllegalStateException("heartbeatTimeout < heartbeatInterval * 2");
-        }
+        this.heartbeatTimeout = server.getUrl().getParameter(Constants.HEARTBEAT_TIMEOUT_KEY, 0);
+//        if (heartbeatTimeout < heartbeat * 2) {
+//            throw new IllegalStateException("heartbeatTimeout < heartbeatInterval * 2");
+//        }
         startHeartbeatTimer();
     }
 
@@ -243,18 +243,18 @@ public class HeaderExchangeServer implements ExchangeServer {
     }
 
     private void startHeartbeatTimer() {
-        stopHeartbeatTimer();
-        if (heartbeat > 0) {
-            heartbeatTimer = scheduled.scheduleWithFixedDelay(
-                    new HeartBeatTask(new HeartBeatTask.ChannelProvider() {
-                        @Override
-                        public Collection<Object> getChannelHolders() {
-                            return Collections.unmodifiableCollection(
-                                    HeaderExchangeServer.this.getChannels());
-                        }
-                    }, heartbeat, heartbeatTimeout),
-                    heartbeat, heartbeat, TimeUnit.MILLISECONDS);
-        }
+//        stopHeartbeatTimer();
+//        if (heartbeat > 0) {
+//            heartbeatTimer = scheduled.scheduleWithFixedDelay(
+//                    new HeartBeatTask(new HeartBeatTask.ChannelProvider() {
+//                        @Override
+//                        public Collection<Object> getChannelHolders() {
+//                            return Collections.unmodifiableCollection(
+//                                    HeaderExchangeServer.this.getChannels());
+//                        }
+//                    }, heartbeat, heartbeatTimeout),
+//                    heartbeat, heartbeat, TimeUnit.MILLISECONDS);
+//        }
     }
 
     private void stopHeartbeatTimer() {

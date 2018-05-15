@@ -71,10 +71,10 @@ public class HeaderExchangeClient implements ExchangeClient {
         this.writeQueue = new WriteQueue(channel);
         String dubbo = client.getUrl().getParameter(Constants.MESH_VERSION_KEY);
         this.heartbeat = client.getUrl().getParameter(Constants.HEARTBEAT_KEY, dubbo != null && dubbo.startsWith("1.0.") ? Constants.DEFAULT_HEARTBEAT : 0);
-        this.heartbeatTimeout = client.getUrl().getParameter(Constants.HEARTBEAT_TIMEOUT_KEY, heartbeat * 3);
-        if (heartbeatTimeout < heartbeat * 2) {
-            throw new IllegalStateException("heartbeatTimeout < heartbeatInterval * 2");
-        }
+        this.heartbeatTimeout = client.getUrl().getParameter(Constants.HEARTBEAT_TIMEOUT_KEY, 0);
+//        if (heartbeatTimeout < heartbeat * 2) {
+//            throw new IllegalStateException("heartbeatTimeout < heartbeatInterval * 2");
+//        }
         if (needHeartbeat) {
             startHeartbeatTimer();
         }
@@ -266,17 +266,17 @@ public class HeaderExchangeClient implements ExchangeClient {
     }
 
     private void startHeartbeatTimer() {
-        stopHeartbeatTimer();
-        if (heartbeat > 0) {
-            heartbeatTimer = scheduled.scheduleWithFixedDelay(
-                    new HeartBeatTask(new HeartBeatTask.ChannelProvider() {
-                        @Override
-                        public Collection<Object> getChannelHolders() {
-                            return Collections.<Object>singletonList(HeaderExchangeClient.this);
-                        }
-                    }, heartbeat, heartbeatTimeout),
-                    heartbeat, heartbeat, TimeUnit.MILLISECONDS);
-        }
+//        stopHeartbeatTimer();
+//        if (heartbeat > 0) {
+//            heartbeatTimer = scheduled.scheduleWithFixedDelay(
+//                    new HeartBeatTask(new HeartBeatTask.ChannelProvider() {
+//                        @Override
+//                        public Collection<Object> getChannelHolders() {
+//                            return Collections.<Object>singletonList(HeaderExchangeClient.this);
+//                        }
+//                    }, heartbeat, heartbeatTimeout),
+//                    heartbeat, heartbeat, TimeUnit.MILLISECONDS);
+//        }
     }
 
     private void stopHeartbeatTimer() {
