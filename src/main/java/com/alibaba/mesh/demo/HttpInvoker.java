@@ -54,7 +54,8 @@ public class HttpInvoker {
     public static void invoke() throws Exception {
 
 
-        String str = RandomStringUtils.random(r.nextInt(1024), true, true);
+        String str = "abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789"
+                ;//RandomStringUtils.random(r.nextInt(1024), true, true);
         String url = "http://127.0.0.1:20000";
 
         RequestBody formBody = new FormBody.Builder()
@@ -63,6 +64,8 @@ public class HttpInvoker {
                 .add("parameterTypesString","Ljava/lang/String;")
                 .add("parameter",str)
                 .build();
+
+        // String tt = "interface=com.alibaba.dubbo.performance.demo.provider.IHelloService&method=hash&parameterTypesString=Ljava/lang/String;&parameter=";
 
         Request request = new Request.Builder()
                 .url(url)
@@ -75,7 +78,7 @@ public class HttpInvoker {
             int hash =  JSON.parseObject(bytes, Integer.class);
             int expectHash = str.hashCode();
             if(hash != expectHash){
-                throw new RuntimeException("expected hash: " + expectHash + ", actual: " + hash);
+                System.out.println("----->>> expected hash: " + expectHash + ", actual: " + hash);
             }
             j++;
         }

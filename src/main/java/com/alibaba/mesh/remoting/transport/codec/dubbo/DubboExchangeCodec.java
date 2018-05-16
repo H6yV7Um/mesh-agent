@@ -117,12 +117,15 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         try {
             return decodeBody(ctx, url, is, header);
         } finally {
-            int skipBytes = buffer.readableBytes();
-            if (skipBytes > 0) {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skip input stream " + buffer);
+            if (is.available() > 0) {
+                try {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Skip input stream " + is.available());
+                    }
+                    is.skip(is.available());
+                } catch (IOException e) {
+                    logger.warn(e.getMessage(), e);
                 }
-                buffer.readerIndex(buffer.readerIndex() + skipBytes);
             }
         }
     }

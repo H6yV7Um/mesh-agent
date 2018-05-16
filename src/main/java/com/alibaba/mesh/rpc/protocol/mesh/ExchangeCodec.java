@@ -118,17 +118,13 @@ public abstract class ExchangeCodec extends AbstractCodec {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        try {
-            return decodeBody(ctx, url, buffer, header);
-        } finally {
-            int skipBytes = buffer.readableBytes();
-            if (skipBytes > 0) {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Skip input stream " + buffer);
-                }
-                buffer.readerIndex(buffer.readerIndex() + skipBytes);
-            }
+        Object data = decodeBody(ctx, url, buffer, header);
+
+        if(data == DecodeResult.NEED_MORE_INPUT) {
+            return DecodeResult.NEED_MORE_INPUT;
         }
+
+        return data;
     }
 
     protected Object decodeBody(ChannelHandlerContext ctx, URL url, ByteBuf buffer, ByteBuf header) throws IOException {
@@ -178,8 +174,12 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     } else {
                         if(isClientSide){
                             data = codeable.decode(ctx, buffer);
+//                            if(data == DecodeResult.NEED_MORE_INPUT){
+//                                return DecodeResult.NEED_MORE_INPUT;
+//                            }
                         }else {
                             // mesh server
+                            // never happen if close heartbeat
                             Object payload = DecodeResult.NEED_MORE_INPUT;
                             while ((payload = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT){
                                 response.setRemoteId(codeable.getRequestId((ByteBuf) payload));

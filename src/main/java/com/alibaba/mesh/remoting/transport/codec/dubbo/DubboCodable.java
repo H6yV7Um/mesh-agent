@@ -235,26 +235,27 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
                 || readable > 1 && header.getByte(1) != MAGIC_LOW) {
             int length = header.readableBytes();
             if (length < readable) {
-                header = buffer.slice(buffer.readerIndex(), readable);
+                header = buffer.slice(buffer.readerIndex() - received, readable);
             }
 
             int i = header.forEachByte(1, header.readableBytes() - 1, new ByteProcessor() {
-                Byte prev = null;
+                byte prev;
+
                 @Override
                 public boolean process(byte value) throws Exception {
-                    if(prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
                     prev = value;
                     return true;
                 }
             });
 
-            if(i != -1) {
+            if(i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - header.readableBytes() + i - 1);
-                header = buffer.slice(buffer.readerIndex(), i - 1);
+                buffer.readerIndex(buffer.readerIndex() - received + i);
+                header = buffer.slice(buffer.readerIndex(), i);
             }
 
-            return decode0(ctx, buffer, readable, header);
+            return DecodeResult.NEED_MORE_INPUT;
         }
 
         // check length.
@@ -264,7 +265,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
 
         Channel channel = ctx.channel();
 
-        URL url = channel.attr(Keys.URL_KEY).get();
+        // URL url = channel.attr(Keys.URL_KEY).get();
         // get data length.
         int len = header.getInt(12);
 

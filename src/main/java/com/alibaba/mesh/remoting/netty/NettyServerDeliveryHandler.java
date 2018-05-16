@@ -24,6 +24,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +54,12 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServerDeliveryHandler.class);
 
+    Bootstrap bootstrap;
+
+    int port;
+
+    String host;
+
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
         this.url = url;
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
@@ -70,7 +77,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
         ctx.channel().attr(Keys.URL_KEY).set(url);
 
-        int port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
+        port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
         String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
         // read port from env.
         if(StringUtils.isNotEmpty(dubboPort)){
@@ -78,10 +85,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         }
 
         if(port < 0) throw new IllegalArgumentException("endpoint port is required, port '" + port + "'");
-        String host = url.getParameter(Constants.ENDPOINT_HOST_KEY, "127.0.0.1");
+        host = url.getParameter(Constants.ENDPOINT_HOST_KEY, "127.0.0.1");
 
         // connect to local service
-        Bootstrap bootstrap = new Bootstrap();
+        bootstrap = new Bootstrap();
         bootstrap.group(ctx.channel().eventLoop())
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
@@ -122,11 +129,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         if(future.channel().isActive()) {
             writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
         }else {
-            if(future.awaitUninterruptibly(timeout) && future.isSuccess()){
-                writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
-            }else {
-                logger.warn("received message from mesh client but failed to connnect endpoint " + future.channel());
-            }
+            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
         }
     }
 
@@ -165,17 +168,30 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = requestIdMap.remove(remoteId);
 
             if(request != null) {
+
+                boolean isEvent = codeable.isEvent(payload);
+
+                if(isEvent){
+                    // do nothing
+                    return;
+                }
+
                 Response response = new Response(request.getId());
                 response.setStatus(codeable.getStatus(payload));
-                if(codeable.isEvent(payload)){
-                    response.setEvent(null);
-                }
 
                 response.setId(request.getId());
                 response.setResult(payload);
                 NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
                         NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
             }
+
+            // ReferenceCountUtil.release(payload);
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+            super.channelInactive(ctx);
+            logger.error("endpoint disconnect from channel: " + ctx.channel());
         }
     }
 }

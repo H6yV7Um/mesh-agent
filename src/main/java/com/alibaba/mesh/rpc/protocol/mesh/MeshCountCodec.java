@@ -47,6 +47,8 @@ public final class MeshCountCodec implements Codec4 {
             Object obj = codec.decode(ctx, buffer);
             if (DecodeResult.NEED_MORE_INPUT == obj) {
                 buffer.readerIndex(save);
+                buffer.discardSomeReadBytes();
+                save = buffer.readerIndex();
                 break;
             } else {
                 result.addMessage(obj);

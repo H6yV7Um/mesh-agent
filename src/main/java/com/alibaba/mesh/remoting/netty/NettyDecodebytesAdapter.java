@@ -64,6 +64,8 @@ final class NettyDecodebytesAdapter {
                 }
                 if (msg == Codeable.DecodeResult.NEED_MORE_INPUT) {
                     buffer.readerIndex(saveReaderIndex);
+                    buffer.discardSomeReadBytes();
+                    saveReaderIndex = buffer.readerIndex();
                     break;
                 } else {
                     //is it possible to go here ?
