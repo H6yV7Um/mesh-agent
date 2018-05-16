@@ -94,7 +94,10 @@ public class FastJsonObjectOutput implements ObjectOutput {
         SerializeWriter out = new SerializeWriter();
         JSONSerializer serializer = new JSONSerializer(out);
         serializer.config(SerializerFeature.WriteEnumUsingToString, true);
+        // System.out.println("provider write before:" + obj);
         serializer.write(obj);
+        // TODO 打印
+        // System.out.println("provider write end:" + serializer.toString());
         out.writeTo(writer);
         out.close(); // for reuse SerializeWriter buf
         writer.println();

@@ -18,7 +18,7 @@
         <java_target_version>1.8</java_target_version>
         <file_encoding>UTF-8</file_encoding>
 
-        <fastjson_version>1.2.46</fastjson_version>
+        <fastjson_version>1.2.47</fastjson_version>
         <javassist_version>3.22.0-GA</javassist_version>
         <jetcd_core_version>0.0.2</jetcd_core_version>
         <spring_version>4.3.16.RELEASE</spring_version>

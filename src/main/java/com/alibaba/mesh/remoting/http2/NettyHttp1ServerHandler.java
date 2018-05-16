@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -55,8 +56,6 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
     static String[] parameterType = new String[]{"Ljava/lang/String;"};
 
-    static Object[] parameterValue = new Object[1];
-
     public NettyHttp1ServerHandler() {
         // this.establishApproach = "Support http/2 protocol only, please upgrade your http client.";
     }
@@ -82,7 +81,11 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             int readableBytes = body.readableBytes();
             int index = body.readerIndex();
 
-//            String str = decodeString(body, body.readerIndex(), body.readableBytes(), Charset.defaultCharset());
+            String str = decodeString(body, body.readerIndex(), body.readableBytes(), Charset.defaultCharset());
+
+            String value = URLDecoder.decode(str);
+
+            value = value.substring(value.indexOf("parameter=") + 10);
 
             int i = body.forEachByte(new ByteProcessor() {
 
@@ -119,7 +122,17 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             body.readerIndex(i + 2);
 
+            Object[] parameterValue = new Object[1];
+
             parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
+
+
+             System.out.println("received:" + parameterValue[0]);
+
+            if(!parameterValue[0].equals(value)){
+                throw new IllegalArgumentException("expected args:" + value +
+                "   actual: " + parameterValue[0]);
+            }
 
             // internel alreay used queue, we alse use response queue
             delegate.$invoke("hash", parameterType, parameterValue);
@@ -135,7 +148,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
         }
     };
 
-    static String decodeString(ByteBuf src, int readerIndex, int len, Charset charset) {
+    public static String decodeString(ByteBuf src, int readerIndex, int len, Charset charset) {
         if (len == 0) {
             return StringUtil.EMPTY_STRING;
         }
@@ -248,7 +261,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             RpcResult r = (RpcResult)response.getResult();
 
-            System.out.println("invoke successfully, response: " + r.getValue());
+//            System.out.println("invoke successfully, response: " + r.getValue());
             // response to http
             ByteBuf payload = ctx.alloc().buffer();
             payload.writeCharSequence(String.valueOf(r.getValue()), utf8);

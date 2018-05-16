@@ -10,6 +10,7 @@ import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
 import com.alibaba.mesh.remoting.transport.AbstractCodec;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * ExchangeCodec.
@@ -212,11 +214,11 @@ public abstract class ExchangeCodec extends AbstractCodec {
                 } else {
                     // only copy client data
                     ByteBuf payload = buffer.slice(buffer.readerIndex(), len).retain();
-                    int savedReaderIndex = payload.readerIndex();
-                    if(!isClientSide(url, ctx.channel())) {
-                        request.setRemoteId(codeable.getRequestId(payload));
-                    }
+                    // int savedReaderIndex = payload.readerIndex();
+                    request.setRemoteId(codeable.getRequestId(payload));
                     data = payload;
+                    // TODO 打印
+                    // System.out.println("provider:" + NettyHttp1ServerHandler.decodeString(payload, payload.readerIndex(), payload.readableBytes(), Charset.forName("utf-8")));
                     // eat resolved payload
                     buffer.readerIndex(buffer.readerIndex() + payload.readableBytes());
                 }

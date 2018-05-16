@@ -88,7 +88,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
 
             if (i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - received + i);
+                buffer.readerIndex(buffer.readerIndex() - received + i - 1);
                 header = buffer.slice(buffer.readerIndex(), i);
             }
 

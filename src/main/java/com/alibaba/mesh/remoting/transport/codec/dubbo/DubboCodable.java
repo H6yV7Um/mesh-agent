@@ -13,6 +13,7 @@ import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Result;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 /**
  * @author yiji
@@ -251,7 +253,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
 
             if(i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - received + i);
+                buffer.readerIndex(buffer.readerIndex() - received + i - 1);
                 header = buffer.slice(buffer.readerIndex(), i);
             }
 
@@ -275,6 +277,11 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         }
 
         ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).slice(readerIndex, tt).retain();
+
+        // TODO 打印
+//        System.out.println("decode enpoint:" + NettyHttp1ServerHandler.decodeString(unresolvedBuffer, unresolvedBuffer.readerIndex(), unresolvedBuffer.readableBytes(),
+//                Charset.defaultCharset()));
+
         buffer.readerIndex(readerIndex + tt);
         return unresolvedBuffer;
     }
