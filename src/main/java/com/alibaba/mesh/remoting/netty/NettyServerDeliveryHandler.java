@@ -172,6 +172,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 boolean isEvent = codeable.isEvent(payload);
 
                 if(isEvent){
+                    ctx.channel().writeAndFlush(payload.retain(), ctx.voidPromise());
                     // do nothing
                     return;
                 }

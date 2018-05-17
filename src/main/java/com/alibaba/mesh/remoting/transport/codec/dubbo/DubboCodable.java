@@ -279,8 +279,13 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).slice(readerIndex, tt).retain();
 
         // TODO 打印
-//        System.out.println("decode enpoint:" + NettyHttp1ServerHandler.decodeString(unresolvedBuffer, unresolvedBuffer.readerIndex(), unresolvedBuffer.readableBytes(),
-//                Charset.defaultCharset()));
+        System.out.println("decode enpoint:" + NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH, unresolvedBuffer.readableBytes() - HEADER_LENGTH,
+                Charset.forName("utf-8")));
+
+        if(NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH, unresolvedBuffer.readableBytes() - HEADER_LENGTH,
+                Charset.forName("utf-8")) == null) {
+            System.out.println("...");
+        }
 
         buffer.readerIndex(readerIndex + tt);
         return unresolvedBuffer;

@@ -1,1 +1,2 @@
 spring=com.alibaba.mesh.container.spring.SpringContainer
+http=com.alibaba.mesh.container.HttpContainer

@@ -127,7 +127,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
 
 
-             System.out.println("received:" + parameterValue[0]);
+             System.out.println("received parameter:" + parameterValue[0]);
 
             if(!parameterValue[0].equals(value)){
                 throw new IllegalArgumentException("expected args:" + value +

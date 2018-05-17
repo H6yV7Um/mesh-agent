@@ -38,8 +38,9 @@ public class MeshConsumer {
         // Search provider definition path
         System.setProperty(SpringContainer.SPRING_CONFIG, "META-INF/spring/mesh-consumer.xml");
 
+
         // Refer service
-        ContainerMain.main(args);
+        ContainerMain.main(new String[] {"spring", "http"});
     }
 
     private final static class LocalDebugOnly implements ApplicationContextAware {

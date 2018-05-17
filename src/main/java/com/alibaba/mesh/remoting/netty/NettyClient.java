@@ -54,30 +54,9 @@ public class NettyClient extends AbstractClient {
     private volatile Channel channel; // volatile, please copy reference to use
 
     private static volatile boolean startedHttpServer = false;
-    private Thread httpServerThread;
 
     public NettyClient(final URL url, final ChannelHandler handler) throws RemotingException {
         super(url, wrapChannelHandler(url, handler));
-
-        // prepare http server
-        if(!startedHttpServer){
-            synchronized (NettyClient.class){
-                if(httpServerThread != null) return;
-                httpServerThread = new Thread("http-Server"){
-                    @Override
-                    public void run() {
-                        try{
-                            if(startedHttpServer) return;
-                            NettyHttp2Server.main(null);
-                            startedHttpServer = true;
-                        }catch (Exception e) {
-                            logger.error("Failed to start http server.", e);
-                        }
-                    }
-                };
-                httpServerThread.start();
-            }
-        }
     }
 
     @Override

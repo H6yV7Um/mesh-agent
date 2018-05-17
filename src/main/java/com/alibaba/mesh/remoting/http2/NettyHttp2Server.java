@@ -12,6 +12,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import javax.net.ssl.SSLException;
+import java.security.cert.CertificateException;
+
 /**
  * @author yiji
  */
@@ -21,30 +24,34 @@ public class NettyHttp2Server {
 
     public static final int DEFAULT_PORT = 20000;
 
-    static URL serverUrl = URL.valueOf("http://localhost:20000");
+    URL serverUrl = URL.valueOf("http://localhost:20000");
 
-    public static void main(String[] args) throws Exception {
+    EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
 
+    Channel ch;
+
+    public void start(){
         String port = System.getProperty(Constants.BIND_PORT_KEY, "20000");
         if(StringUtils.isNotEmpty(port)){
             serverUrl.setPort(Integer.parseInt(port));
         }
-
-        EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
+        ServerBootstrap b = new ServerBootstrap();
+        b.option(ChannelOption.SO_BACKLOG, 1024);
+        // reuse netty client worker group
         try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.option(ChannelOption.SO_BACKLOG, 1024);
-            // reuse netty client worker group
             b.group(group, NettyClient.nioWorkerGroup)
                     .channel(NioServerSocketChannel.class)
                     // .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new NettyHttp2ServerInitializer(serverUrl));
-
-            Channel ch = b.bind(serverUrl.getPort()).sync().channel();
-
-            ch.closeFuture().sync();
-        } finally {
-            group.shutdownGracefully();
+            ch = b.bind(serverUrl.getPort()).awaitUninterruptibly().channel();
+        } catch (SSLException e) {
+            throw new RuntimeException(e);
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    public void stop(){
+        group.shutdownGracefully();
     }
 }

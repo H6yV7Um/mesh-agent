@@ -176,6 +176,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     } else {
                         if(isClientSide){
                             data = codeable.decode(ctx, buffer);
+                            System.out.println("client receive:" + data);
 //                            if(data == DecodeResult.NEED_MORE_INPUT){
 //                                return DecodeResult.NEED_MORE_INPUT;
 //                            }
