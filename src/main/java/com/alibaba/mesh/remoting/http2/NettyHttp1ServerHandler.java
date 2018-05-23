@@ -272,8 +272,6 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         @Override
         public void run(Channel channel) {
-//            logger.info("write parameter: " + parameter + ",\n" +
-//                    " expected hash: " + parameter.hashCode() + ", actual :" + );
             channel.write(response, promise);
         }
     }
@@ -307,17 +305,9 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             }
 
             // response to http
-
             boolean error = !Objects.equals(parameter.hashCode(), r.getValue());
 
-            if (error) {
-                System.out.println("Http response!!! expected: " + parameter.hashCode() + ", actual:" + r.getValue()
-                        + "\n parameter:" + parameter);
-
-            }
-
             ByteBuf payload = ctx.alloc().buffer();
-//            payload.writeInt((int)r.getValue());
             String result0 = String.valueOf(r.getValue());
             payload.writeCharSequence(result0, utf8);
             FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload);
@@ -325,7 +315,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
 
-            if (!result0.equals(r.getValue())) {
+            if (error) {
                 logger.error("Http response send error !!!  expected: " + parameter.hashCode() + ", actual:" + r.getValue()
                         + "\n parameter:" + parameter);
             }

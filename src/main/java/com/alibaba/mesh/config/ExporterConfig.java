@@ -223,6 +223,8 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         map.put(Constants.GENERIC_KEY, generic);
         map.put(Constants.METHODS_KEY, Constants.ANY_VALUE);
 
+        map.put(Constants.WEIGHT_KEY, System.getProperty("default.weight", "100"));
+
         // export service
         String contextPath = protocolConfig.getContextpath();
 
@@ -230,11 +232,11 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
 
-        if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
-                .hasExtension(url.getProtocol())) {
-            url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
-                    .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
-        }
+//        if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+//                .hasExtension(url.getProtocol())) {
+//            url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+//                    .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
+//        }
 
         String scope = url.getParameter(Constants.SCOPE_KEY);
         // don't export when none is configured
