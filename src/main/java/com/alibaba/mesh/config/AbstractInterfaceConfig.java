@@ -139,10 +139,18 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                 if (address == null || address.length() == 0) {
                     address = Constants.ANYHOST_VALUE;
                 }
-                String sysaddress = System.getProperty("agent.registry.address");
-                if (sysaddress != null && sysaddress.length() > 0) {
-                    address = sysaddress;
+//                String sysaddress = System.getProperty("agent.registry.address");
+//                if (sysaddress != null && sysaddress.length() > 0) {
+//                    address = sysaddress;
+//                }
+
+                String etcdaddress = System.getProperty("etcd.url");
+                if (etcdaddress != null && etcdaddress.length() > 0) {
+                    if(etcdaddress.startsWith("http://")){
+                        address = etcdaddress.substring(7);
+                    }
                 }
+
                 if (address != null && address.length() > 0
                         && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();

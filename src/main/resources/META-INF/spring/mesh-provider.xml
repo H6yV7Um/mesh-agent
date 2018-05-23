@@ -6,7 +6,7 @@
        http://dubbo.apache.org/schema/mesh http://dubbo.apache.org/schema/mesh/mesh.xsd">
 
     <mesh:endpoint name="dubbo" port="20880" />
-    <mesh:registry address="etcd3://127.0.0.1:2379"/>
+    <mesh:registry address="127.0.0.1:2379" protocol="etcd3"/>
 
     <mesh:protocol port="30000"/>
     <mesh:exporter interface="com.alibaba.dubbo.performance.demo.provider.IHelloService" endpoint="dubbo"/>
