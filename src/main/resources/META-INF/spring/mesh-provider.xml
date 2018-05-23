@@ -5,7 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://dubbo.apache.org/schema/mesh http://dubbo.apache.org/schema/mesh/mesh.xsd">
 
-    <mesh:endpoint name="dubbo" port="20889" />
+    <mesh:endpoint name="dubbo" port="20880" />
     <mesh:registry address="etcd3://127.0.0.1:2379"/>
 
     <mesh:protocol port="30000"/>
