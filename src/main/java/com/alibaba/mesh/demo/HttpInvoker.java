@@ -21,7 +21,7 @@ public class HttpInvoker {
 
     private static OkHttpClient client;
 
-    private static int invokeTimes = 1;
+    private static int invokeTimes = 10000;
 
     private static int j = 0;
 

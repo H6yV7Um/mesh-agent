@@ -274,26 +274,26 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         }
 
         ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).copy(readerIndex, tt);//.retain();
-        String parameter = NettyServerDeliveryHandler.idParameterMap.get(unresolvedBuffer.getLong(4));
+        //String parameter = NettyServerDeliveryHandler.idParameterMap.get(unresolvedBuffer.getLong(4));
 
-        if ((unresolvedBuffer.getByte(2) & FLAG_EVENT) == 0) {
-
-            String decodeString = NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH,
-                    unresolvedBuffer.readableBytes() - HEADER_LENGTH, Charset.forName("utf-8")).split("\n")[1];
-
-            if (log.isDebugEnabled()) {
-                log.debug("dubbo endpoint expected: " + parameter.hashCode() + ", actual:"
-                        + decodeString + " id: " + unresolvedBuffer.getLong(4) + ", param: " + parameter);
-            }
-
-            if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decodeString))) {
-                if (log.isDebugEnabled()) {
-                    log.error("dubbo decode error, expected: " + parameter.hashCode() + ", actual:"
-                            + decodeString + ", param: " + parameter);
-                }
-            }
-
-        }
+//        if ((unresolvedBuffer.getByte(2) & FLAG_EVENT) == 0) {
+//
+//            String decodeString = NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH,
+//                    unresolvedBuffer.readableBytes() - HEADER_LENGTH, Charset.forName("utf-8")).split("\n")[1];
+//
+//            if (log.isDebugEnabled()) {
+//                log.debug("dubbo endpoint expected: " + parameter.hashCode() + ", actual:"
+//                        + decodeString + " id: " + unresolvedBuffer.getLong(4) + ", param: " + parameter);
+//            }
+//
+//            if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decodeString))) {
+//                if (log.isDebugEnabled()) {
+//                    log.error("dubbo decode error, expected: " + parameter.hashCode() + ", actual:"
+//                            + decodeString + ", param: " + parameter);
+//                }
+//            }
+//
+//        }
 
         buffer.readerIndex(readerIndex + tt);
         return unresolvedBuffer;

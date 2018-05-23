@@ -26,6 +26,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,16 +149,16 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         Request request = (Request) msg;
         requestIdMap.put(request.getRemoteId(), request);
 
-        String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
-        decode0 = decode0.substring(1, decode0.length() - 1);
+        //String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
+//        decode0 = decode0.substring(1, decode0.length() - 1);
 
-        idParameterMap.put(request.getId(), decode0);
+        // idParameterMap.put(request.getId(), decode0);
 
         // received message from mesh consumer
         if (future.channel().isActive()) {
-            writeToEndpoint.enqueue(new SendRequestCommand(((ByteBuf) request.getData()).retain(), future.channel().voidPromise()), true);
+            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
         } else {
-            writeToEndpoint.enqueue(new SendRequestCommand(((ByteBuf) request.getData()).retain(), future.channel().voidPromise()), false);
+            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
         }
     }
 
@@ -192,7 +193,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
             // received message from endpoint
             ByteBuf payload = (ByteBuf) message;
-
             long remoteId = codeable.getRequestId(payload);
             Request request = requestIdMap.remove(remoteId);
 
@@ -215,23 +215,23 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     return;
                 }
 
-                String decode = NettyHttp1ServerHandler.decodeString(payload, 16, payload.readableBytes() - 16, Charset.forName("utf-8")).split("\n")[1];
+//                String decode = NettyHttp1ServerHandler.decodeString(payload, 16, payload.readableBytes() - 16, Charset.forName("utf-8")).split("\n")[1];
+//
+//                String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
+//
+//                decode0 = decode0.substring(1, decode0.length() - 1);
+//
+//                if (!Objects.equals(decode0.hashCode(), Integer.valueOf(decode))) {
+//                    logger.error("endpoint response error, expected: " + decode0.hashCode() + ", actual: " + decode + ", param: " + decode0);
+//                    //return;
+//                }
 
-                String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
-
-                decode0 = decode0.substring(1, decode0.length() - 1);
-
-                if (!Objects.equals(decode0.hashCode(), Integer.valueOf(decode))) {
-                    logger.error("endpoint response error, expected: " + decode0.hashCode() + ", actual: " + decode + ", param: " + decode0);
-                    //return;
-                }
-
-                String parameter = NettyServerDeliveryHandler.idParameterMap.get(payload.getLong(4));
-
-                if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decode))) {
-                    logger.error("endpoint response error, expected: " + parameter.hashCode() + ", actual: " + decode + ", param: " + parameter);
-                    //return;
-                }
+//                String parameter = NettyServerDeliveryHandler.idParameterMap.get(payload.getLong(4));
+//
+//                if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decode))) {
+//                    logger.error("endpoint response error, expected: " + parameter.hashCode() + ", actual: " + decode + ", param: " + parameter);
+//                    //return;
+//                }
 
 
                 Response response = new Response(request.getId());
@@ -242,8 +242,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
                         NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
             }
-
-            // ReferenceCountUtil.release(payload);
         }
 
         @Override
