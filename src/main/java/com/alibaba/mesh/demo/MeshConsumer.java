@@ -38,6 +38,7 @@ public class MeshConsumer {
         // Search provider definition path
         System.setProperty(SpringContainer.SPRING_CONFIG, "META-INF/spring/mesh-consumer.xml");
 
+        System.setProperty(ContainerMain.SHUTDOWN_HOOK_KEY, "true");
 
         // Refer service
         ContainerMain.main(new String[] {"spring", "http"});

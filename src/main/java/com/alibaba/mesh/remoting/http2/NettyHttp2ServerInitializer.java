@@ -117,13 +117,6 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<NioSocketCha
     private void configureClearText(SocketChannel ch) {
 
         final ChannelPipeline p = ch.pipeline();
-//        final HttpServerCodec sourceCodec = new HttpServerCodec();
-//        final HttpServerUpgradeHandler upgradeHandler = new HttpServerUpgradeHandler(sourceCodec, upgradeCodecFactory);
-//        final CleartextHttp2ServerUpgradeHandler cleartextHttp2ServerUpgradeHandler =
-//                new CleartextHttp2ServerUpgradeHandler(sourceCodec, upgradeHandler,
-//                        new NettyHttp2ServerHandlerBuilder().withURL(url).build());
-//
-//        p.addLast(cleartextHttp2ServerUpgradeHandler);
         p.addLast(new HttpServerCodec());
         p.addLast(new HttpObjectAggregator(65536));
         p.addLast(new NettyHttp1ServerHandler());

@@ -291,9 +291,12 @@ public class DefaultFuture implements ResponseFuture {
                             Response timeoutResponse = new Response(future.getId());
                             // set timeout status.
                             timeoutResponse.setStatus(future.isSent() ? Response.SERVER_TIMEOUT : Response.CLIENT_TIMEOUT);
-                            timeoutResponse.setErrorMessage(future.getTimeoutMessage(true));
+                            String message = future.getTimeoutMessage(true);
+                            timeoutResponse.setErrorMessage(message);
                             // handle response.
                             DefaultFuture.received(future.getChannel(), timeoutResponse);
+                            logger.debug(message);
+                            System.out.println("FUTURES size: " + FUTURES.size());
                         }
                     }
                     Thread.sleep(30);

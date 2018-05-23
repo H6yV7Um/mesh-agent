@@ -84,10 +84,7 @@ public class MeshInvoker<T> extends AbstractInvoker<T> {
         if (!super.isAvailable())
             return false;
         for (ExchangeClient client : clients) {
-            if (client.isConnected()) {
-                //cannot write == not Available ?
-                return true;
-            }
+            return client.isConnected();
         }
         return false;
     }

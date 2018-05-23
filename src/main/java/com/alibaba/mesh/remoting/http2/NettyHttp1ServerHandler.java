@@ -8,7 +8,6 @@ import com.alibaba.mesh.rpc.RpcResult;
 import com.alibaba.mesh.rpc.service.GenericService;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -25,16 +24,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
+import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -56,8 +61,24 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
     static String[] parameterType = new String[]{"Ljava/lang/String;"};
 
+    private Thread monitor;
+
+    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
+    public static AtomicInteger received = new AtomicInteger();
+    public static AtomicInteger responsed = new AtomicInteger();
+
     public NettyHttp1ServerHandler() {
         // this.establishApproach = "Support http/2 protocol only, please upgrade your http client.";
+        this.monitor = new Thread("monitor-endpoint-received.") {
+            @Override
+            public void run() {
+                if (responseQueue.queue != null && responseQueue.queue.size() > 0)
+                    System.out.println("response queue size: " + responseQueue.queue.size());
+            }
+        };
+
+        scheduledExecutorService.scheduleAtFixedRate(this.monitor, 0, 50, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -73,19 +94,17 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
 
-        String parameter = null;
-
         ByteBuf body = request.content();
 
-        if(body.isReadable()) {
+        if (body.isReadable()) {
             int readableBytes = body.readableBytes();
             int index = body.readerIndex();
 
-            String str = decodeString(body, body.readerIndex(), body.readableBytes(), Charset.defaultCharset());
-
-            String value = URLDecoder.decode(str);
-
-            value = value.substring(value.indexOf("parameter=") + 10);
+//            String str = decodeString(body, body.readerIndex(), body.readableBytes(), Charset.defaultCharset());
+//
+//            String value = URLDecoder.decode(str);
+//
+//            value = value.substring(value.indexOf("parameter=") + 10);
 
             int i = body.forEachByte(new ByteProcessor() {
 
@@ -93,24 +112,32 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
                 boolean next;
 
                 int offset = 0;
+
                 @Override
                 public boolean process(byte b) throws Exception {
 
-                    if(++offset < 5) return true;
+                    if (++offset < 5) return true;
 
-                    p = a; a = r; r = a0; a0 = m;
-                    m = e; e = t; t = e0; e0 = r0; r0 = b;
+                    p = a;
+                    a = r;
+                    r = a0;
+                    a0 = m;
+                    m = e;
+                    e = t;
+                    t = e0;
+                    e0 = r0;
+                    r0 = b;
 
-                    if(p == 'p'
-                            && a  == 'a'
-                            && r  == 'r'
+                    if (p == 'p'
+                            && a == 'a'
+                            && r == 'r'
                             && a0 == 'a'
-                            && m  == 'm'
-                            && e  == 'e'
-                            && t  == 't'
+                            && m == 'm'
+                            && e == 'e'
+                            && t == 't'
                             && e0 == 'e'
-                            && b  == 'r'){
-                        if(next) {
+                            && b == 'r') {
+                        if (next) {
                             return false;
                         }
                         next = true;
@@ -126,18 +153,20 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
 
-
-             System.out.println("received parameter:" + parameterValue[0]);
-
-            if(!parameterValue[0].equals(value)){
-                throw new IllegalArgumentException("expected args:" + value +
-                "   actual: " + parameterValue[0]);
+            if (logger.isDebugEnabled()) {
+                logger.debug("received parameter:" + parameterValue[0]);
             }
+
+//            if(!parameterValue[0].equals(value)){
+//                throw new IllegalArgumentException("expected args:" + value +
+//                "   actual: " + parameterValue[0]);
+//            }
 
             // internel alreay used queue, we alse use response queue
             delegate.$invoke("hash", parameterType, parameterValue);
+            received.incrementAndGet();
             RpcContext.getContext().getResponseFuture()
-                    .setCallback(new ResponseCallbackImpl(ctx, request));
+                    .setCallback(new ResponseCallbackImpl(ctx, request, (String) parameterValue[0]));
         }
     }
 
@@ -209,14 +238,18 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         FullHttpResponse response;
 
+        String parameter;
+
         public InvokeMethodResponseCommand(ChannelHandlerContext ctx,
                                            FullHttpRequest request,
                                            @Nonnull ChannelPromise promise,
-                                           FullHttpResponse response) {
+                                           FullHttpResponse response,
+                                           String parameter) {
             this.ctx = ctx;
             this.request = request;
             this.promise = promise;
             this.response = response;
+            this.parameter = parameter;
         }
 
         /**
@@ -239,6 +272,8 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         @Override
         public void run(Channel channel) {
+//            logger.info("write parameter: " + parameter + ",\n" +
+//                    " expected hash: " + parameter.hashCode() + ", actual :" + );
             channel.write(response, promise);
         }
     }
@@ -247,29 +282,55 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         ChannelHandlerContext ctx;
         FullHttpRequest request;
+        String parameter;
 
         public ResponseCallbackImpl(ChannelHandlerContext ctx,
-                                    FullHttpRequest request) {
+                                    FullHttpRequest request,
+                                    String parameter) {
             this.ctx = ctx;
             this.request = request;
+            this.parameter = parameter;
         }
 
         @Override
         public void done(Object result) {
 
-            Response response = (Response)result;
+            Response response = (Response) result;
 
-            RpcResult r = (RpcResult)response.getResult();
+            RpcResult r = (RpcResult) response.getResult();
 
-//            System.out.println("invoke successfully, response: " + r.getValue());
+            responsed.incrementAndGet();
+
+            if (r.getValue() == null) {
+                logger.error("http1 response received null value!!");
+                return;
+            }
+
             // response to http
+
+            boolean error = !Objects.equals(parameter.hashCode(), r.getValue());
+
+            if (error) {
+                System.out.println("Http response!!! expected: " + parameter.hashCode() + ", actual:" + r.getValue()
+                        + "\n parameter:" + parameter);
+
+            }
+
             ByteBuf payload = ctx.alloc().buffer();
-            payload.writeCharSequence(String.valueOf(r.getValue()), utf8);
+//            payload.writeInt((int)r.getValue());
+            String result0 = String.valueOf(r.getValue());
+            payload.writeCharSequence(result0, utf8);
             FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload);
             httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+            httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
 
-            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
+            if (!result0.equals(r.getValue())) {
+                logger.error("Http response send error !!!  expected: " + parameter.hashCode() + ", actual:" + r.getValue()
+                        + "\n parameter:" + parameter);
+            }
+
+            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse, parameter), true);
 
         }
 

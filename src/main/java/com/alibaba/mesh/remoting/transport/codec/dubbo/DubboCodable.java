@@ -10,17 +10,16 @@ import com.alibaba.mesh.common.serialize.Serialization;
 import com.alibaba.mesh.common.utils.RpcUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Codeable;
-import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
 import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
+import com.alibaba.mesh.remoting.netty.NettyServerDeliveryHandler;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Result;
 import com.alibaba.mesh.rpc.RpcInvocation;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ByteProcessor;
 import org.slf4j.Logger;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 /**
  * @author yiji
@@ -156,7 +156,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
 
         out.writeUTF(RpcUtils.getMethodName(inv));
         // should be like Ljava.lang.String;
-        out.writeUTF(((String[])inv.getArguments()[1])[0]);
+        out.writeUTF(((String[]) inv.getArguments()[1])[0]);
         Object[] args = (Object[]) inv.getArguments()[2];
         if (args != null)
             for (int i = 0; i < args.length; i++) {
@@ -228,9 +228,9 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
                 received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
 
         // maybe call retain() ??
-        ByteBuf header = buffer.slice(buffer.readerIndex(), received);
+        ByteBuf header = buffer.slice(readerIndex, received);
         // set index to message body
-        buffer.readerIndex(buffer.readerIndex() + received);
+        buffer.readerIndex(readerIndex + received);
 
         // check magic number.
         if (readable > 0 && header.getByte(0) != MAGIC_HIGH
@@ -251,7 +251,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
                 }
             });
 
-            if(i > 0) {
+            if (i > 0) {
                 // set index to message head
                 buffer.readerIndex(buffer.readerIndex() - received + i - 1);
                 header = buffer.slice(buffer.readerIndex(), i);
@@ -265,9 +265,6 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        Channel channel = ctx.channel();
-
-        // URL url = channel.attr(Keys.URL_KEY).get();
         // get data length.
         int len = header.getInt(12);
 
@@ -276,15 +273,26 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).slice(readerIndex, tt).retain();
+        ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).copy(readerIndex, tt);//.retain();
+        String parameter = NettyServerDeliveryHandler.idParameterMap.get(unresolvedBuffer.getLong(4));
 
-        // TODO 打印
-        System.out.println("decode enpoint:" + NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH, unresolvedBuffer.readableBytes() - HEADER_LENGTH,
-                Charset.forName("utf-8")));
+        if ((unresolvedBuffer.getByte(2) & FLAG_EVENT) == 0) {
 
-        if(NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH, unresolvedBuffer.readableBytes() - HEADER_LENGTH,
-                Charset.forName("utf-8")) == null) {
-            System.out.println("...");
+            String decodeString = NettyHttp1ServerHandler.decodeString(unresolvedBuffer, HEADER_LENGTH,
+                    unresolvedBuffer.readableBytes() - HEADER_LENGTH, Charset.forName("utf-8")).split("\n")[1];
+
+            if (log.isDebugEnabled()) {
+                log.debug("dubbo endpoint expected: " + parameter.hashCode() + ", actual:"
+                        + decodeString + " id: " + unresolvedBuffer.getLong(4) + ", param: " + parameter);
+            }
+
+            if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decodeString))) {
+                if (log.isDebugEnabled()) {
+                    log.error("dubbo decode error, expected: " + parameter.hashCode() + ", actual:"
+                            + decodeString + ", param: " + parameter);
+                }
+            }
+
         }
 
         buffer.readerIndex(readerIndex + tt);

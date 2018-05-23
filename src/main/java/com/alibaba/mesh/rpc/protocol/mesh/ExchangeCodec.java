@@ -43,9 +43,9 @@ public abstract class ExchangeCodec extends AbstractCodec {
     protected static final byte MAGIC_HIGH = Bytes.short2bytes(MAGIC)[0];
     protected static final byte MAGIC_LOW = Bytes.short2bytes(MAGIC)[1];
     // message flag.
-    protected static final byte FLAG_REQUEST = (byte) 0x80;
-    protected static final byte FLAG_TWOWAY = (byte) 0x40;
-    protected static final byte FLAG_EVENT = (byte) 0x20;
+    public static final byte FLAG_REQUEST = (byte) 0x80;
+    public static final byte FLAG_TWOWAY = (byte) 0x40;
+    public static final byte FLAG_EVENT = (byte) 0x20;
     protected static final int SERIALIZATION_MASK = 0x1f;
     private static final Logger logger = LoggerFactory.getLogger(ExchangeCodec.class);
 
@@ -121,6 +121,10 @@ public abstract class ExchangeCodec extends AbstractCodec {
         }
 
         Object data = decodeBody(ctx, url, buffer, header);
+
+        if(data == null) {
+            logger.error("consumer got null..");
+        }
 
         if(data == DecodeResult.NEED_MORE_INPUT) {
             return DecodeResult.NEED_MORE_INPUT;

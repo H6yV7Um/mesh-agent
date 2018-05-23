@@ -3,6 +3,8 @@ package com.alibaba.mesh.remoting;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelPromise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -12,6 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A queue of pending writes to a {@link Channel} that is flushed as a single unit.
  */
 public class WriteQueue {
+
+    Logger logger = LoggerFactory.getLogger(WriteQueue.class);
 
     // Dequeue in chunks, so we don't have to acquire the queue's log too often.
     static final int DEQUE_CHUNK_SIZE = 128;
@@ -27,7 +31,7 @@ public class WriteQueue {
     };
 
     private final Channel channel;
-    private final Queue<QueuedCommand> queue;
+    public final Queue<QueuedCommand> queue;
     private final AtomicBoolean scheduled = new AtomicBoolean();
 
     public WriteQueue(Channel channel) {

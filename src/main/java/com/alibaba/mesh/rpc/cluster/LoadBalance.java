@@ -22,7 +22,7 @@ import com.alibaba.mesh.common.extension.SPI;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Invoker;
 import com.alibaba.mesh.rpc.RpcException;
-import com.alibaba.mesh.rpc.cluster.loadbalance.RandomLoadBalance;
+import com.alibaba.mesh.rpc.cluster.loadbalance.RoundRobinLoadBalance;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @see com.alibaba.mesh.rpc.cluster.Cluster#join(Directory)
  */
-@SPI(RandomLoadBalance.NAME)
+@SPI(RoundRobinLoadBalance.NAME)
 public interface LoadBalance {
 
     /**

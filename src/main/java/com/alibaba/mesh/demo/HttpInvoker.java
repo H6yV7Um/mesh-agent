@@ -21,12 +21,16 @@ public class HttpInvoker {
 
     private static OkHttpClient client;
 
-    private static int invokeTimes = 1000;
+    private static int invokeTimes = 1;
 
     private static int j = 0;
 
-    public static void main(String[] args) throws Exception {
+    static {
         init();
+    }
+
+    public static void main(String[] args) throws Exception {
+        // init();
         for(int i = 0; i < invokeTimes; i++){
             invoke();
         }
@@ -56,8 +60,8 @@ public class HttpInvoker {
 
         //String str = "abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789abcedefghijklmnopqrstuvwxyz0123456789";//RandomStringUtils.random(r.nextInt(1024), true, true);
 
-        String str =RandomStringUtils.random(r.nextInt(1024), true, true);
-//        String str="HdZqgR7rnv5e04BgEhiKRf24h2uIJeOMT8EDhlRJnm7ovj46vYQomSHIafZ5Xtqz1FRg3LclSyPs90bSq2P8ajhLo27ojRRgoZKDUiEKqzHEGYYxeNyV2bYr8mOVDIWNuIGWJGKvr5UQ4GODkY7YPslCK8Cpfbhu8nECeiKNyi2LQbRlHwJh7LHvcms0mLTAIAgSPSiUlVtipxkPDXh2n7ZQHgt5PUIg9LJEvI5bNnMScpBY15i7UFWWdFUgCbIzzFEdYvKvDka7Xdpszpe84MM5imVne7f9Mu3MooYCRjTre27wDtWB75SVZaxwV9zTgzKbPijeII8I4uv3Sq3SNBUgcAqTPLoG2w8RLuRwUsxsbwxs0weNKay8YjgqLYiOMewmw0sSCabOr1lEWxGMpH0z5DFhfA10hn329fNbUBc1H615si8oIqBBqqE33GIPevCqtqIcxiLYPN0";
+        String str =    RandomStringUtils.random(r.nextInt(1024), true, true);
+//      String str="HdZqgR7rnv5e04BgEhiKRf24h2uIJeOMT8EDhlRJnm7ovj46vYQomSHIafZ5Xtqz1FRg3LclSyPs90bSq2P8ajhLo27ojRRgoZKDUiEKqzHEGYYxeNyV2bYr8mOVDIWNuIGWJGKvr5UQ4GODkY7YPslCK8Cpfbhu8nECeiKNyi2LQbRlHwJh7LHvcms0mLTAIAgSPSiUlVtipxkPDXh2n7ZQHgt5PUIg9LJEvI5bNnMScpBY15i7UFWWdFUgCbIzzFEdYvKvDka7Xdpszpe84MM5imVne7f9Mu3MooYCRjTre27wDtWB75SVZaxwV9zTgzKbPijeII8I4uv3Sq3SNBUgcAqTPLoG2w8RLuRwUsxsbwxs0weNKay8YjgqLYiOMewmw0sSCabOr1lEWxGMpH0z5DFhfA10hn329fNbUBc1H615si8oIqBBqqE33GIPevCqtqIcxiLYPN0";
         String url = "http://127.0.0.1:20000";
 
         RequestBody formBody = new FormBody.Builder()

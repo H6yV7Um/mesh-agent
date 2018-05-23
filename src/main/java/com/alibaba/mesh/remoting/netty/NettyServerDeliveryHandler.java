@@ -11,6 +11,8 @@ import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
+import com.alibaba.mesh.rpc.protocol.mesh.ExchangeCodec;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -24,11 +26,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yiji
@@ -46,11 +54,15 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     private Codeable codeable;
 
-    private HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
+    public HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
+
+    public static Map<Long, String> idParameterMap = new ConcurrentHashMap<Long, String>();
 
     private WriteQueue writeQueue;
 
     private WriteQueue writeToEndpoint;
+
+    private Thread monitor;
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServerDeliveryHandler.class);
 
@@ -60,12 +72,22 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     String host;
 
+    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
         this.url = url;
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
         this.handler = handler;
         this.codeable = getChannelCodec(url);
-        if(timeout < 3000) timeout = 3000;
+        if (timeout < 3000) timeout = 3000;
+        this.monitor = new Thread("monitor-endpoint-received.") {
+            @Override
+            public void run() {
+                if (writeQueue.queue != null && writeQueue.queue.size() > 0)
+                    System.out.println("queue size: " + writeQueue.queue.size());
+            }
+        };
+        scheduledExecutorService.scheduleAtFixedRate(this.monitor, 0, 50, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -80,11 +102,11 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
         String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
         // read port from env.
-        if(StringUtils.isNotEmpty(dubboPort)){
+        if (StringUtils.isNotEmpty(dubboPort)) {
             port = Integer.parseInt(dubboPort);
         }
 
-        if(port < 0) throw new IllegalArgumentException("endpoint port is required, port '" + port + "'");
+        if (port < 0) throw new IllegalArgumentException("endpoint port is required, port '" + port + "'");
         host = url.getParameter(Constants.ENDPOINT_HOST_KEY, "127.0.0.1");
 
         // connect to local service
@@ -103,11 +125,11 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         future.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                if(future.isSuccess()) {
+                if (future.isSuccess()) {
                     Channel endpointChannel = future.channel();
                     NettyServerDeliveryHandler.this.endpointChannel = endpointChannel;
-                }else {
-                    if(future.cause() != null){
+                } else {
+                    if (future.cause() != null) {
                         throw new RemotingException(future.channel(), "mesh server(url: " + url + ") failed to connect to endpint "
                                 + host + ":" + finalPort + ", error message is:" + future.cause().getMessage(), future.cause());
                     }
@@ -119,17 +141,23 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     }
 
     /**
-     *  We will receive message from mesh consumer side.
+     * We will receive message from mesh consumer side.
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Request request = (Request)msg;
+        Request request = (Request) msg;
         requestIdMap.put(request.getRemoteId(), request);
+
+        String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
+        decode0 = decode0.substring(1, decode0.length() - 1);
+
+        idParameterMap.put(request.getId(), decode0);
+
         // received message from mesh consumer
-        if(future.channel().isActive()) {
-            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
-        }else {
-            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
+        if (future.channel().isActive()) {
+            writeToEndpoint.enqueue(new SendRequestCommand(((ByteBuf) request.getData()).retain(), future.channel().voidPromise()), true);
+        } else {
+            writeToEndpoint.enqueue(new SendRequestCommand(((ByteBuf) request.getData()).retain(), future.channel().voidPromise()), false);
         }
     }
 
@@ -148,7 +176,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
         @Override
         protected void initChannel(Channel ch) throws Exception {
-            NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codeable, url);;
+            NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codeable, url);
+            ;
             ch.pipeline()
                     .addLast("remote-decoder", adapter.getDecoder())
                     .addLast("remote-inbound", new RemoteInboundChannelHandler());
@@ -157,28 +186,56 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     class RemoteInboundChannelHandler extends ChannelInboundHandlerAdapter {
         /**
-         *  We will receive message response from remote enpont(eg dubbo)
+         * We will receive message response from remote enpont(eg dubbo)
          */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
             // received message from endpoint
-            ByteBuf payload = (ByteBuf)message;
+            ByteBuf payload = (ByteBuf) message;
 
             long remoteId = codeable.getRequestId(payload);
             Request request = requestIdMap.remove(remoteId);
 
-            if(request != null) {
+            boolean isEvent = codeable.isEvent(payload);
 
-                boolean isEvent = codeable.isEvent(payload);
+            if (isEvent) {
+                // response
+                // payload.setByte(2, 0x20);
+                payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
+                payload.setByte(3, Response.OK);
+                ctx.channel().writeAndFlush(payload, ctx.voidPromise());
+                System.out.println("endpoint event received and responsed, id: " + remoteId);
+                return;
+            }
 
-                if(isEvent){
-                    ctx.channel().writeAndFlush(payload.retain(), ctx.voidPromise());
-                    // do nothing
+            byte status = codeable.getStatus(payload);
+            if (request != null) {
+                if (status != Response.OK) {
+                    System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);
                     return;
                 }
 
+                String decode = NettyHttp1ServerHandler.decodeString(payload, 16, payload.readableBytes() - 16, Charset.forName("utf-8")).split("\n")[1];
+
+                String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
+
+                decode0 = decode0.substring(1, decode0.length() - 1);
+
+                if (!Objects.equals(decode0.hashCode(), Integer.valueOf(decode))) {
+                    logger.error("endpoint response error, expected: " + decode0.hashCode() + ", actual: " + decode + ", param: " + decode0);
+                    //return;
+                }
+
+                String parameter = NettyServerDeliveryHandler.idParameterMap.get(payload.getLong(4));
+
+                if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decode))) {
+                    logger.error("endpoint response error, expected: " + parameter.hashCode() + ", actual: " + decode + ", param: " + parameter);
+                    //return;
+                }
+
+
                 Response response = new Response(request.getId());
-                response.setStatus(codeable.getStatus(payload));
+                response.setStatus(status);
 
                 response.setId(request.getId());
                 response.setResult(payload);
