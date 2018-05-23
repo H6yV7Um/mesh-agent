@@ -50,7 +50,7 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
     }
 
     static void handleResponse(Channel channel, Response response) throws RemotingException {
-        if (response != null && !response.isHeartbeat()) {
+        if (response != null && !response.isEvent()) {
             DefaultFuture.received(channel, response);
         }
     }

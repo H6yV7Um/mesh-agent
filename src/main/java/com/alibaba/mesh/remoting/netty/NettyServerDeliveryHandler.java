@@ -194,7 +194,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             // received message from endpoint
             ByteBuf payload = (ByteBuf) message;
             long remoteId = codeable.getRequestId(payload);
-            Request request = requestIdMap.remove(remoteId);
 
             boolean isEvent = codeable.isEvent(payload);
 
@@ -204,11 +203,13 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
                 payload.setByte(3, Response.OK);
                 ctx.channel().writeAndFlush(payload, ctx.voidPromise());
+                ReferenceCountUtil.release(payload);
                 System.out.println("endpoint event received and responsed, id: " + remoteId);
                 return;
             }
 
             byte status = codeable.getStatus(payload);
+            Request request = requestIdMap.remove(remoteId);
             if (request != null) {
                 if (status != Response.OK) {
                     System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);

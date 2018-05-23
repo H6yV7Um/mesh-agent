@@ -293,46 +293,37 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
         @Override
         public void done(Object result) {
 
-            if(result instanceof Response){
-                Response response = (Response) result;
 
-                Object ret = response.getResult();
+            Response response = (Response) result;
 
-                if(ret instanceof RpcResult){
+            Object ret = response.getResult();
 
-                    RpcResult r = (RpcResult)ret;
+            RpcResult r = (RpcResult)ret;
 
-                    responsed.incrementAndGet();
+            responsed.incrementAndGet();
 
-                    if (r.getValue() == null) {
-                        logger.error("http1 response received null value!!");
-                        return;
-                    }
-
-                    // response to http
-                    boolean error = !Objects.equals(parameter.hashCode(), r.getValue());
-
-                    ByteBuf payload = ctx.alloc().buffer();
-                    String result0 = String.valueOf(r.getValue());
-                    payload.writeCharSequence(result0, utf8);
-                    FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload);
-                    httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
-                    httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
-                    httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
-
-                    if (error) {
-                        logger.error("Http response send error !!!  expected: " + parameter.hashCode() + ", actual:" + r.getValue()
-                                + "\n parameter:" + parameter);
-                    }
-
-                    NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse, parameter), true);
-
-                }else{
-                    logger.warn("callback received(non rpc result):" + ret.toString());
-                }
-            }else {
-                logger.warn("callback received:" + result.toString());
+            if (r.getValue() == null) {
+                logger.error("http1 response received null value!!");
+                return;
             }
+
+            // response to http
+            boolean error = !Objects.equals(parameter.hashCode(), r.getValue());
+
+            ByteBuf payload = ctx.alloc().buffer();
+            String result0 = String.valueOf(r.getValue());
+            payload.writeCharSequence(result0, utf8);
+            FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload);
+            httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+            httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
+            httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
+
+            if (error) {
+                logger.error("Http response send error !!!  expected: " + parameter.hashCode() + ", actual:" + r.getValue()
+                        + "\n parameter:" + parameter);
+            }
+
+            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse, parameter), true);
 
         }
 
