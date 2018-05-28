@@ -80,7 +80,8 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
 
                 @Override
                 public boolean process(byte value) throws Exception {
-                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW)
+                        return false;
                     prev = value;
                     return true;
                 }
@@ -89,7 +90,6 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
             if (i > 0) {
                 // set index to message head
                 buffer.readerIndex(buffer.readerIndex() - received + i - 1);
-                header = buffer.slice(buffer.readerIndex(), i);
             }
 
             return DecodeResult.NEED_MORE_INPUT;

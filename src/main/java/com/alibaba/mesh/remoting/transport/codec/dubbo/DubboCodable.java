@@ -245,7 +245,8 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
 
                 @Override
                 public boolean process(byte value) throws Exception {
-                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW)
+                        return false;
                     prev = value;
                     return true;
                 }
@@ -254,7 +255,6 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             if (i > 0) {
                 // set index to message head
                 buffer.readerIndex(buffer.readerIndex() - received + i - 1);
-                header = buffer.slice(buffer.readerIndex(), i);
             }
 
             return DecodeResult.NEED_MORE_INPUT;

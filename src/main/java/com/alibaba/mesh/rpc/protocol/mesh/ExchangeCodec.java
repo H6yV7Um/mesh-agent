@@ -88,7 +88,8 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
                 @Override
                 public boolean process(byte value) throws Exception {
-                    if (prev == MAGIC_HIGH && value == MAGIC_LOW) return false;
+                    if (prev == MAGIC_HIGH && value == MAGIC_LOW)
+                        return false;
                     prev = value;
                     return true;
                 }
@@ -96,8 +97,8 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
             if(i > 0) {
                 // set index to message head
-                buffer.readerIndex(buffer.readerIndex() - received + i);
-                header = buffer.slice(buffer.readerIndex(), i);
+                buffer.readerIndex(buffer.readerIndex() - received + i - 1);
+                // header = buffer.slice(buffer.readerIndex(), i - 1);
             }
 
             return DecodeResult.NEED_MORE_INPUT;
@@ -180,10 +181,6 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     } else {
                         if(isClientSide){
                             data = codeable.decode(ctx, buffer);
-//                            System.out.println("client receive:" + data);
-//                            if(data == DecodeResult.NEED_MORE_INPUT){
-//                                return DecodeResult.NEED_MORE_INPUT;
-//                            }
                         }else {
                             // mesh server
                             // never happen if close heartbeat
@@ -265,8 +262,10 @@ public abstract class ExchangeCodec extends AbstractCodec {
         header.writeByte(FLAG_REQUEST | serialization.getContentTypeId());
 
         // update slot [2]
-        if (req.isTwoWay()) header.setByte(2, header.getByte(2) | FLAG_TWOWAY);
-        if (req.isEvent())  header.setByte(2, header.getByte(2) | FLAG_EVENT);
+        if (req.isTwoWay())
+            header.setByte(2, header.getByte(2) | FLAG_TWOWAY);
+        if (req.isEvent())
+            header.setByte(2, header.getByte(2) | FLAG_EVENT);
 
         Codeable codeable = CodecSupport.getCodeable(url);
 
@@ -327,9 +326,12 @@ public abstract class ExchangeCodec extends AbstractCodec {
             // set magic number.
             // slot [0, 1]
             header.writeShort(MAGIC);
+            // set default flag
+            header.setByte(2, 0);
             // set request.
             // slot [2]
-            if (response.isHeartbeat()) header.writeByte(FLAG_EVENT | header.getByte(2));
+            if (response.isHeartbeat())
+                header.writeByte(FLAG_EVENT | header.getByte(2));
 
             // skip codec type, eg: mesh
             // slot [3]

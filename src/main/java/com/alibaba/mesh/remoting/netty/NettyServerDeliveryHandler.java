@@ -215,30 +215,16 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     return;
                 }
 
-//                String decode = NettyHttp1ServerHandler.decodeString(payload, 16, payload.readableBytes() - 16, Charset.forName("utf-8")).split("\n")[1];
-//
-//                String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
-//
-//                decode0 = decode0.substring(1, decode0.length() - 1);
-//
-//                if (!Objects.equals(decode0.hashCode(), Integer.valueOf(decode))) {
-//                    logger.error("endpoint response error, expected: " + decode0.hashCode() + ", actual: " + decode + ", param: " + decode0);
-//                    //return;
-//                }
-
-//                String parameter = NettyServerDeliveryHandler.idParameterMap.get(payload.getLong(4));
-//
-//                if (!Objects.equals(parameter.hashCode(), Integer.valueOf(decode))) {
-//                    logger.error("endpoint response error, expected: " + parameter.hashCode() + ", actual: " + decode + ", param: " + parameter);
-//                    //return;
-//                }
-
-
                 Response response = new Response(request.getId());
                 response.setStatus(status);
 
                 response.setId(request.getId());
                 response.setResult(payload);
+
+                if(response.isEvent()){
+                    throw new IllegalArgumentException("got event !!");
+                }
+
                 NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
                         NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
             }

@@ -82,6 +82,8 @@ final class NettyCodecAdapter {
                 }
                 if (msg == Codec4.DecodeResult.NEED_MORE_INPUT) {
                     buffer.readerIndex(saveReaderIndex);
+                    // buffer.discardSomeReadBytes();
+                    // saveReaderIndex = buffer.readerIndex();
                     break;
                 } else {
                     //is it possible to go here ?
