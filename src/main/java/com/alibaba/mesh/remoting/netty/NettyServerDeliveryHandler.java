@@ -25,6 +25,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -117,7 +118,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
-                .channel(NioSocketChannel.class);
+                .channel(EpollServerSocketChannel.class);
+//                .channel(NioSocketChannel.class);
 
         bootstrap.handler(new RemoteChannelInitializer());
 
@@ -220,10 +222,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
                 response.setId(request.getId());
                 response.setResult(payload);
-
-                if(response.isEvent()){
-                    throw new IllegalArgumentException("got event !!");
-                }
 
                 NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
                         NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);

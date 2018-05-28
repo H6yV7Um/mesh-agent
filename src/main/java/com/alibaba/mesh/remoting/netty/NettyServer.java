@@ -32,9 +32,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
@@ -59,8 +58,8 @@ public class NettyServer extends AbstractServer implements Server {
 
     private Channel channel;
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
+    private EpollEventLoopGroup bossGroup;
+    private EpollEventLoopGroup workerGroup;
 
     public NettyServer(URL url, ChannelHandler handler) throws RemotingException {
         super(url, ChannelHandlers.wrap(handler, ExecutorUtil.setThreadName(url, SERVER_THREAD_POOL_NAME)));
@@ -70,16 +69,19 @@ public class NettyServer extends AbstractServer implements Server {
     protected void doOpen() throws Throwable {
         bootstrap = new ServerBootstrap();
 
-        bossGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
+//        bossGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
+//                new DefaultThreadFactory("NettyServerBoss", true));
+        bossGroup = new EpollEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
                 new DefaultThreadFactory("NettyServerBoss", true));
-        workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
+        workerGroup = new EpollEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
                 new DefaultThreadFactory("NettyServerWorker", true));
 
         final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
         channels = statisticHandler.getChannels();
 
         bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
+//                .channel(NioServerSocketChannel.class)
+                .channel(EpollServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
                 .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
