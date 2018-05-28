@@ -1,4 +1,3 @@
-
 package com.alibaba.mesh.common.utils;
 
 import com.alibaba.mesh.common.URL;
