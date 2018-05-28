@@ -297,20 +297,8 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         } catch (Throwable t) {
             // clear buffer
             buffer.writerIndex(savedWriteIndex);
-            // send error message to MeshConsumer, otherwise, MeshConsumer will wait till timeout.
             if (!response.isEvent() && response.getStatus() != Response.BAD_RESPONSE) {
-//                Response r = new Response(response.getId(), response.getVersion());
-//                r.setStatus(Response.BAD_RESPONSE);
-
-                // FIXME log error message in Codec and handle in caught() of IoHanndler?
                 logger.warn("Fail to encode response: " + response + ", send bad_response info instead, cause: " + t.getMessage(), t);
-//                try {
-//                    r.setErrorMessage("Failed to send response: " + res + ", cause: " + StringUtils.toString(t));
-//                    ctx.send(r);
-//                    return;
-//                } catch (RemotingException e) {
-//                    logger.warn("Failed to send bad_response info back: " + res + ", cause: " + e.getMessage(), e);
-//                }
             }
 
             // Rethrow exception

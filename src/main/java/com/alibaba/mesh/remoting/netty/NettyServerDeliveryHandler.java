@@ -24,16 +24,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author yiji
@@ -53,8 +48,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     public HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
 
-    public static Map<Long, String> idParameterMap = new ConcurrentHashMap<Long, String>();
-
     private WriteQueue writeQueue;
 
     private WriteQueue writeToEndpoint;
@@ -69,22 +62,12 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     String host;
 
-    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
         this.url = url;
         this.timeout = url.getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
         this.handler = handler;
         this.codeable = getChannelCodec(url);
         if (timeout < 3000) timeout = 3000;
-        this.monitor = new Thread("monitor-endpoint-received.") {
-            @Override
-            public void run() {
-                if (writeQueue.queue != null && writeQueue.queue.size() > 0)
-                    System.out.println("queue size: " + writeQueue.queue.size());
-            }
-        };
-        scheduledExecutorService.scheduleAtFixedRate(this.monitor, 0, 50, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -113,8 +96,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
-                .channel(EpollSocketChannel.class);
-//                .channel(NioSocketChannel.class);
+//                .channel(EpollSocketChannel.class);
+                .channel(NioSocketChannel.class);
 
         bootstrap.handler(new RemoteChannelInitializer());
 
@@ -190,8 +173,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             boolean isEvent = codeable.isEvent(payload);
 
             if (isEvent) {
-                // response
-                // payload.setByte(2, 0x20);
                 payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
                 payload.setByte(3, Response.OK);
                 ctx.writeAndFlush(payload, ctx.voidPromise());

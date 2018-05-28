@@ -8,8 +8,9 @@ import com.alibaba.mesh.remoting.netty.NettyClient;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
@@ -25,8 +26,8 @@ public class NettyHttp2Server {
 
     URL serverUrl = URL.valueOf("http://localhost:20000");
 
-//    EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
-    EpollEventLoopGroup group = new EpollEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
+    EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
+//    EpollEventLoopGroup group = new EpollEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
 
     Channel ch;
 
@@ -40,7 +41,7 @@ public class NettyHttp2Server {
         // reuse netty client worker group
         try {
             b.group(group, NettyClient.nioWorkerGroup)
-                    .channel(EpollServerSocketChannel.class)
+                    .channel(NioServerSocketChannel.class)
 //                    .channel(NioServerSocketChannel.class)
                     // .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new NettyHttp2ServerInitializer(serverUrl));
