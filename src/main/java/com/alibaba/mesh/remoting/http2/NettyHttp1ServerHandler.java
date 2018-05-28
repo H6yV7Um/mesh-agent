@@ -61,24 +61,10 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
     static String[] parameterType = new String[]{"Ljava/lang/String;"};
 
-    private Thread monitor;
-
-    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-
     public static AtomicInteger received = new AtomicInteger();
     public static AtomicInteger responsed = new AtomicInteger();
 
     public NettyHttp1ServerHandler() {
-        // this.establishApproach = "Support http/2 protocol only, please upgrade your http client.";
-        this.monitor = new Thread("monitor-endpoint-received.") {
-            @Override
-            public void run() {
-                if (responseQueue.queue != null && responseQueue.queue.size() > 0)
-                    System.out.println("response queue size: " + responseQueue.queue.size());
-            }
-        };
-
-        scheduledExecutorService.scheduleAtFixedRate(this.monitor, 0, 50, TimeUnit.MILLISECONDS);
     }
 
     @Override

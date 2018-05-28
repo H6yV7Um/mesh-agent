@@ -9,6 +9,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
@@ -40,7 +41,8 @@ public class NettyHttp2Server {
         // reuse netty client worker group
         try {
             b.group(group, NettyClient.nioWorkerGroup)
-                    .channel(NioServerSocketChannel.class)
+                    .channel(EpollServerSocketChannel.class)
+//                    .channel(NioServerSocketChannel.class)
                     // .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new NettyHttp2ServerInitializer(serverUrl));
             ch = b.bind(serverUrl.getPort()).awaitUninterruptibly().channel();
