@@ -194,7 +194,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 // payload.setByte(2, 0x20);
                 payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
                 payload.setByte(3, Response.OK);
-                ctx.channel().writeAndFlush(payload, ctx.voidPromise());
+                ctx.writeAndFlush(payload, ctx.voidPromise());
                 System.out.println("endpoint event received and responsed, id: " + remoteId);
                 return;
             }
