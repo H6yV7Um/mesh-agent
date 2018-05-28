@@ -59,28 +59,6 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<EpollSocketC
 
         this.url = url;
         this.maxHttpContentLength = url.getParameter(Constants.MAX_HTTP_CONTENT_BYTES_KEY, Constants.MAX_HTTP_CONTENT_BYTES);
-
-        if (url.getParameter(Constants.SSL_ENABLE_KEY, false)) {
-            String certificate = url.getParameter(Constants.SSL_CERTIFICATE_KEY);
-            String privateKey = url.getParameter(Constants.SSL_PRIVATE_KEY);
-            SslContextBuilder sslContextBuilder = null;
-            if (detectSSL(certificate, privateKey)) {
-                sslContextBuilder = SslContextBuilder.forServer(new File(certificate), new File(privateKey), url.getParameter(Constants.SSL_PRIVATE_KEY_PASSWORD));
-            } else {
-                SelfSignedCertificate ssc = new SelfSignedCertificate();
-                sslContextBuilder = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey());
-                logger.warn("generates a temporary self-signed certificate for testing purposes because of not found certificate or private key file.");
-            }
-            this.sslCtx = sslContextBuilder.sslProvider(OpenSsl.isAlpnSupported() ? SslProvider.OPENSSL : SslProvider.JDK)
-                    /* NOTE: the cipher filter may not include all ciphers required by the HTTP/2 specification. */
-                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                    .applicationProtocolConfig(new ApplicationProtocolConfig(
-                            ApplicationProtocolConfig.Protocol.ALPN,
-                            ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                            ApplicationProtocolNames.HTTP_2,
-                            ApplicationProtocolNames.HTTP_1_1)).build();
-        }
     }
 
     private boolean detectSSL(String certificate, String privateKey) {
@@ -92,11 +70,7 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<EpollSocketC
 
     @Override
     public void initChannel(EpollSocketChannel ch) {
-        if (sslCtx != null) {
-            configureSsl(ch);
-        } else {
-            configureClearText(ch);
-        }
+        configureClearText(ch);
     }
 
     /**
