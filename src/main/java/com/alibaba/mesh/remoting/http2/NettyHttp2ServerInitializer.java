@@ -102,17 +102,17 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<EpollSocketC
     /**
      * Configure the pipeline for TLS NPN negotiation to HTTP/2.
      */
-    private void configureSsl(SocketChannel ch) {
+    private void configureSsl(EpollSocketChannel ch) {
         ch.pipeline().addLast(sslCtx.newHandler(ch.alloc()), new NettyHttp2NegotiationHandler(url));
     }
 
     /**
      * Configure the pipeline for a cleartext upgrade from HTTP to HTTP/2.0
      */
-    private void configureClearText(SocketChannel ch) {
+    private void configureClearText(EpollSocketChannel ch) {
 
         final ChannelPipeline p = ch.pipeline();
-        p.addLast(new HttpServerCodec());
+        p.addLast(new HttpServerCodec(4096, 8192, 8192, false));
         p.addLast(new HttpObjectAggregator(65536));
         p.addLast(new NettyHttp1ServerHandler());
     }

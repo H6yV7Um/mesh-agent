@@ -86,12 +86,6 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             int readableBytes = body.readableBytes();
             int index = body.readerIndex();
 
-//            String str = decodeString(body, body.readerIndex(), body.readableBytes(), Charset.defaultCharset());
-//
-//            String value = URLDecoder.decode(str);
-//
-//            value = value.substring(value.indexOf("parameter=") + 10);
-
             int i = body.forEachByte(new ByteProcessor() {
 
                 byte p, a, r, a0, m, e, t, e0, r0;
@@ -142,11 +136,6 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             if (logger.isDebugEnabled()) {
                 logger.debug("received parameter:" + parameterValue[0]);
             }
-
-//            if(!parameterValue[0].equals(value)){
-//                throw new IllegalArgumentException("expected args:" + value +
-//                "   actual: " + parameterValue[0]);
-//            }
 
             // internel alreay used queue, we alse use response queue
             delegate.$invoke("hash", parameterType, parameterValue);
@@ -286,28 +275,18 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             RpcResult r = (RpcResult)ret;
 
-            responsed.incrementAndGet();
-
             if (r.getValue() == null) {
                 logger.error("http1 response received null value!!");
                 return;
             }
 
-            // response to http
-            boolean error = !Objects.equals(parameter.hashCode(), r.getValue());
-
             ByteBuf payload = ctx.alloc().buffer();
             String result0 = String.valueOf(r.getValue());
             payload.writeCharSequence(result0, utf8);
-            FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload);
+            FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload, false);
             httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
             httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
-
-            if (error) {
-                logger.error("Http response send error !!!  expected: " + parameter.hashCode() + ", actual:" + r.getValue()
-                        + "\n parameter:" + parameter);
-            }
 
             NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse, parameter), true);
 
