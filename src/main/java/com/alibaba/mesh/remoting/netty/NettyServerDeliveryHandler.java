@@ -11,7 +11,6 @@ import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
 import com.alibaba.mesh.rpc.protocol.mesh.ExchangeCodec;
 
 import io.netty.bootstrap.Bootstrap;
@@ -25,16 +24,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.util.ReferenceCountUtil;
+import io.netty.channel.epoll.EpollSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -118,7 +113,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout)
-                .channel(EpollServerSocketChannel.class);
+                .channel(EpollSocketChannel.class);
 //                .channel(NioSocketChannel.class);
 
         bootstrap.handler(new RemoteChannelInitializer());
@@ -150,11 +145,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Request request = (Request) msg;
         requestIdMap.put(request.getRemoteId(), request);
-
-        //String decode0 = NettyHttp1ServerHandler.decodeString(((ByteBuf) request.getData()), 16, ((ByteBuf) request.getData()).readableBytes() - 16, Charset.forName("utf-8")).split("\n")[5];
-//        decode0 = decode0.substring(1, decode0.length() - 1);
-
-        // idParameterMap.put(request.getId(), decode0);
 
         // received message from mesh consumer
         if (future.channel().isActive()) {
