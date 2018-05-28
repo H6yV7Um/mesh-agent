@@ -4,18 +4,14 @@ import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.StringUtils;
 
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.codec.http.HttpServerUpgradeHandler;
-import io.netty.handler.codec.http2.CleartextHttp2ServerUpgradeHandler;
 import io.netty.handler.codec.http2.Http2CodecUtil;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.codec.http2.Http2ServerUpgradeCodec;
@@ -28,7 +24,6 @@ import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.util.AsciiString;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +36,7 @@ import java.security.cert.CertificateException;
 /**
  * @author yiji
  */
-public class NettyHttp2ServerInitializer extends ChannelInitializer<NioSocketChannel> {
+public class NettyHttp2ServerInitializer extends ChannelInitializer<EpollSocketChannel> {
 
     private SslContext sslCtx;
     private int maxHttpContentLength;
@@ -96,7 +91,7 @@ public class NettyHttp2ServerInitializer extends ChannelInitializer<NioSocketCha
     }
 
     @Override
-    public void initChannel(NioSocketChannel ch) {
+    public void initChannel(EpollSocketChannel ch) {
         if (sslCtx != null) {
             configureSsl(ch);
         } else {
