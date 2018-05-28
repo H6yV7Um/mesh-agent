@@ -12,7 +12,7 @@
     <properties>
         <slf4j_api_version>1.7.25</slf4j_api_version>
         <logback_version>1.2.3</logback_version>
-        <netty.version>4.1.24.Final</netty.version>
+        <netty.version>4.1.25.Final</netty.version>
 
         <java_source_version>1.8</java_source_version>
         <java_target_version>1.8</java_target_version>
@@ -93,6 +93,12 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring_version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <version>${netty.version}</version>
         </dependency>
 
         <!--
