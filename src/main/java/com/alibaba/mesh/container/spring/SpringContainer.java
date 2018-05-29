@@ -12,6 +12,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class SpringContainer implements Container {
 
+    public static final String NAME = "spring";
+
     public static final String SPRING_CONFIG = "mesh.spring.config";
     public static final String DEFAULT_SPRING_CONFIG = "classpath*:META-INF/spring/*.xml";
     private static final Logger logger = LoggerFactory.getLogger(SpringContainer.class);

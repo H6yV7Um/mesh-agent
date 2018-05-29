@@ -11,6 +11,8 @@ import java.io.OutputStream;
 
 public class FastJsonSerialization implements Serialization {
 
+    public static final String NAME = "json";
+
     @Override
     public byte getContentTypeId() {
         return 6;

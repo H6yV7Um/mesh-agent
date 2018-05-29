@@ -132,7 +132,8 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
 
     protected Object decodeBody(ChannelHandlerContext ctx, URL url, InputStream is, ByteBuf header) throws IOException {
         byte flag = header.getByte(2), proto = (byte) (flag & SERIALIZATION_MASK);
-        Serialization s = CodecSupport.getSerialization(url, proto);
+//        Serialization s = CodecSupport.getSerialization(url, proto);
+        Serialization s = CodecSupport.getSerialization(url);
         ObjectInput in = s.deserialize(url, is);
         // get request id.
         long id = header.getLong(4);

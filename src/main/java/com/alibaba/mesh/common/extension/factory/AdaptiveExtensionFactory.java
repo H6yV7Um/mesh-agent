@@ -14,6 +14,8 @@ import java.util.List;
 @Adaptive
 public class AdaptiveExtensionFactory implements ExtensionFactory {
 
+    public static final String NAME = "adaptive";
+
     private final List<ExtensionFactory> factories;
 
     public AdaptiveExtensionFactory() {

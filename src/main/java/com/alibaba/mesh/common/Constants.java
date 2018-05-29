@@ -66,7 +66,8 @@ public class Constants {
 
     public static final String DEFAULT_DIRECTORY = "mesh";
 
-    public static final String DEFAULT_LOADBALANCE = "random";
+    // public static final String DEFAULT_LOADBALANCE = "random";
+    public static final String DEFAULT_LOADBALANCE = "roundrobin";
 
     public static final String DEFAULT_PROTOCOL = "mesh";
 

@@ -12,6 +12,8 @@ import java.util.Set;
  */
 public class SpringExtensionFactory implements ExtensionFactory {
 
+    public static final String NAME = "spring";
+
     private static final Set<ApplicationContext> contexts = new ConcurrentHashSet<ApplicationContext>();
 
     public static void addApplicationContext(ApplicationContext context) {

@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpContainer implements Container {
 
+    public final static String NAME = "http";
+
     private static final Logger logger = LoggerFactory.getLogger(HttpContainer.class);
 
     NettyHttp2Server http2Server = new NettyHttp2Server();

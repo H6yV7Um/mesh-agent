@@ -9,6 +9,8 @@ import com.alibaba.mesh.common.extension.SPI;
  */
 public class SpiExtensionFactory implements ExtensionFactory {
 
+    public static final String NAME = "spi";
+
     @Override
     public <T> T getExtension(Class<T> type, String name) {
         if (type.isInterface() && type.isAnnotationPresent(SPI.class)) {

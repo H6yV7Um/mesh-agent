@@ -189,8 +189,9 @@ public class MeshProtocol extends AbstractProtocol {
         }
         str = url.getParameter(Constants.CLIENT_KEY);
         if (str != null && str.length() > 0) {
-            Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions();
-            if (!supportedTypes.contains(str)) {
+            //Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getExtension(str).getSupportedExtensions();
+            // if (!supportedTypes.contains(str)) {
+            if (ExtensionLoader.getExtensionLoader(Transporter.class).getExtension(str) == null) {
                 throw new RpcException("Unsupported client type: " + str);
             }
         }

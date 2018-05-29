@@ -47,8 +47,10 @@ public class DecodeableRpcResult extends RpcResult implements Decodeable {
 
         URL url = channel.attr(Keys.URL_KEY).get();
 
-        ObjectInput in = CodecSupport.getSerialization(url, serializationType)
+        ObjectInput in = CodecSupport.getSerialization(url)
                 .deserialize(url, input);
+//        ObjectInput in = CodecSupport.getSerialization(url, serializationType)
+//                .deserialize(url, input);
         
         byte flag = in.readByte();
         switch (flag) {

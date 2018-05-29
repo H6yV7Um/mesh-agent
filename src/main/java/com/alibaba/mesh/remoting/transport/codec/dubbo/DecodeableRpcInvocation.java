@@ -63,7 +63,7 @@ public class DecodeableRpcInvocation extends RpcInvocation implements Decodeable
         URL url = channel.attr(Keys.URL_KEY).get();
 
         ObjectInput in;
-        in = CodecSupport.getSerialization(url, serializationType)
+        in = CodecSupport.getSerialization(url)
                 .deserialize(url, input);
 
         setAttachment(Constants.MESH_VERSION_KEY, in.readUTF());

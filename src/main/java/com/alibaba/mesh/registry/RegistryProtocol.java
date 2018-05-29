@@ -37,6 +37,8 @@ import static com.alibaba.mesh.common.Constants.QOS_PORT;
  */
 public class RegistryProtocol implements Protocol {
 
+    public static final String NAME = "registry";
+
     private final static Logger logger = LoggerFactory.getLogger(RegistryProtocol.class);
     private static RegistryProtocol INSTANCE;
     private final Map<URL, NotifyListener> overrideListeners = new ConcurrentHashMap<URL, NotifyListener>();

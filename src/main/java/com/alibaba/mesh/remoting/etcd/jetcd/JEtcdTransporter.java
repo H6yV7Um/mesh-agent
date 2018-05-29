@@ -9,6 +9,8 @@ import com.alibaba.mesh.remoting.etcd.EtcdTransporter;
  */
 public class JEtcdTransporter implements EtcdTransporter {
 
+    public static final String NAME = "jetcd";
+
     @Override
     public EtcdClient connect(URL url) {
         return new JEtcdClient(url);

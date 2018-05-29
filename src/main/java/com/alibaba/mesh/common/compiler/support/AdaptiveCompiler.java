@@ -10,6 +10,8 @@ import com.alibaba.mesh.common.extension.ExtensionLoader;
 @Adaptive
 public class AdaptiveCompiler implements Compiler {
 
+    public static final String NAME = "adaptive";
+
     private static volatile String DEFAULT_COMPILER;
 
     public static void setDefaultCompiler(String compiler) {

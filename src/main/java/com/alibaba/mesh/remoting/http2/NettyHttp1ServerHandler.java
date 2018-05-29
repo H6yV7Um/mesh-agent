@@ -30,10 +30,6 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
-import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
@@ -139,9 +135,8 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             // internel alreay used queue, we alse use response queue
             delegate.$invoke("hash", parameterType, parameterValue);
-            received.incrementAndGet();
             RpcContext.getContext().getResponseFuture()
-                    .setCallback(new ResponseCallbackImpl(ctx, request, (String) parameterValue[0]));
+                    .setCallback(new ResponseCallbackImpl(ctx, request));
         }
     }
 
@@ -213,18 +208,14 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         FullHttpResponse response;
 
-        String parameter;
-
         public InvokeMethodResponseCommand(ChannelHandlerContext ctx,
                                            FullHttpRequest request,
                                            @Nonnull ChannelPromise promise,
-                                           FullHttpResponse response,
-                                           String parameter) {
+                                           FullHttpResponse response) {
             this.ctx = ctx;
             this.request = request;
             this.promise = promise;
             this.response = response;
-            this.parameter = parameter;
         }
 
         /**
@@ -255,14 +246,11 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
         ChannelHandlerContext ctx;
         FullHttpRequest request;
-        String parameter;
 
         public ResponseCallbackImpl(ChannelHandlerContext ctx,
-                                    FullHttpRequest request,
-                                    String parameter) {
+                                    FullHttpRequest request) {
             this.ctx = ctx;
             this.request = request;
-            this.parameter = parameter;
         }
 
         @Override
@@ -288,7 +276,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
 
-            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse, parameter), true);
+            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
 
         }
 

@@ -1,1 +1,2 @@
 random=com.alibaba.mesh.rpc.cluster.loadbalance.RandomLoadBalance
+roundrobin=com.alibaba.mesh.rpc.cluster.loadbalance.RoundRobinLoadBalance

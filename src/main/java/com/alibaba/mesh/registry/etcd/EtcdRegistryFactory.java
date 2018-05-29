@@ -13,6 +13,8 @@ import com.alibaba.mesh.remoting.etcd.EtcdTransporter;
  */
 public class EtcdRegistryFactory extends AbstractRegistryFactory {
 
+    public static final String NAME = "etcd3";
+
     private EtcdTransporter etcdTransporter;
 
     @Override
