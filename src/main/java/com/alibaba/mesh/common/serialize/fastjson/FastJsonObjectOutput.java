@@ -1,94 +1,134 @@
 package com.alibaba.mesh.common.serialize.fastjson;
 
-import com.alibaba.fastjson.serializer.JSONSerializer;
-import com.alibaba.fastjson.serializer.SerializeWriter;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.mesh.common.serialize.ObjectOutput;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.Map;
 
 public class FastJsonObjectOutput implements ObjectOutput {
 
-    private final PrintWriter writer;
+    private final ByteBuf writer;
 
-    public FastJsonObjectOutput(OutputStream out) {
-        this(new OutputStreamWriter(out));
-    }
+    public static final Charset ascii = Charset.forName("US-ASCII");
+    public static final byte lineSeparator = System.getProperty("line.separator").getBytes(ascii)[0];
+    public static final byte doubleQuotation = "\"".getBytes(ascii)[0];
+    public static final byte lBracket = "{".getBytes(ascii)[0];
+    public static final byte rBracket = "}".getBytes(ascii)[0];
+    public static final byte comma = ",".getBytes(ascii)[0];
+    public static final byte colon = ":".getBytes(ascii)[0];
 
-    public FastJsonObjectOutput(Writer writer) {
-        this.writer = new PrintWriter(writer);
+    public FastJsonObjectOutput(ByteBuf output) {
+        this.writer = output;
     }
 
     @Override
     public void writeBool(boolean v) throws IOException {
-        writeObject(v);
+        writer.writeBoolean(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeByte(byte v) throws IOException {
-        writeObject(v);
+        writer.writeByte(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeShort(short v) throws IOException {
-        writeObject(v);
+        writer.writeShort(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeInt(int v) throws IOException {
-        writeObject(v);
+        writer.writeInt(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeLong(long v) throws IOException {
-        writeObject(v);
+        writer.writeLong(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeFloat(float v) throws IOException {
-        writeObject(v);
+        writer.writeFloat(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeDouble(double v) throws IOException {
-        writeObject(v);
+        writer.writeDouble(v);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeUTF(String v) throws IOException {
-        writeObject(v);
+        writer.writeByte(doubleQuotation);
+        writer.writeCharSequence(v, ascii);
+        writer.writeByte(doubleQuotation);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeBytes(byte[] b) throws IOException {
-        writer.println(new String(b));
+        writer.writeBytes(b);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeBytes(byte[] b, int off, int len) throws IOException {
-        writer.println(new String(b, off, len));
+        writer.writeBytes(b, off, len);
+        writer.writeByte(lineSeparator);
     }
 
     @Override
     public void writeObject(Object obj) throws IOException {
-        SerializeWriter out = new SerializeWriter();
-        JSONSerializer serializer = new JSONSerializer(out);
-        serializer.config(SerializerFeature.WriteEnumUsingToString, true);
-        serializer.write(obj);
-        // TODO 打印
-        out.writeTo(writer);
-        out.close(); // for reuse SerializeWriter buf
-        writer.println();
-        writer.flush();
+        Class<?> clazz = obj.getClass();
+        if (Map.class.isAssignableFrom(clazz)) {
+            writer.writeByte(lBracket);
+            {
+                Map map = (Map) obj;
+
+                Iterator iterator = map.entrySet().iterator();
+                int index = 0, size = map.size();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, String> item = (Map.Entry<String, String>) iterator.next();
+
+                    writer.writeByte(doubleQuotation);
+                    writer.writeCharSequence(item.getKey(), ascii);
+                    writer.writeByte(doubleQuotation);
+
+                    writer.writeByte(colon);
+
+                    writer.writeByte(doubleQuotation);
+                    writer.writeCharSequence(item.getValue(), ascii);
+                    writer.writeByte(doubleQuotation);
+
+                    ++index;
+                    if (index > 0 && index < size) {
+                        writer.writeByte(comma);
+                    }
+                }
+            }
+            writer.writeByte(rBracket);
+        } else if (String.class.isAssignableFrom(clazz)) {
+            String value = (String) obj;
+            writer.writeByte(doubleQuotation);
+            writer.writeCharSequence(value, ascii);
+            writer.writeByte(doubleQuotation);
+            writer.writeByte(lineSeparator);
+        }
     }
 
     @Override
     public void flushBuffer() throws IOException {
-        writer.flush();
+        // writer.flush();
     }
 
 }

@@ -302,7 +302,7 @@ public final class StringUtils {
      * parse key-value pair.
      *
      * @param str           string.
-     * @param itemSeparator item separator.
+     * @param itemSeparator item lineSeparator.
      * @return key-value map;
      */
     private static Map<String, String> parseKeyValuePair(String str, String itemSeparator) {

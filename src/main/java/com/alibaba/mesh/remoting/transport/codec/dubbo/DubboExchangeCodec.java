@@ -9,7 +9,6 @@ import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.buffer.ChannelBufferInputStream;
-import com.alibaba.mesh.remoting.buffer.ChannelBufferOutputStream;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
@@ -227,17 +226,17 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         // encode request data.
         int savedWriteIndex = buffer.writerIndex();
         buffer.writerIndex(savedWriteIndex + HEADER_LENGTH);
-        ChannelBufferOutputStream bos = new ChannelBufferOutputStream(buffer);
-        ObjectOutput out = serialization.serialize(url, bos);
+//        ChannelBufferOutputStream bos = new ChannelBufferOutputStream(buffer);
+        ObjectOutput out = serialization.serialize(url, buffer);
         if (req.isEvent()) {
             encodeEventData(ctx, out, req.getData());
         } else {
             encodeRequestData(ctx, out, req.getData());
         }
         out.flushBuffer();
-        bos.flush();
-        bos.close();
-        int len = bos.writtenBytes();
+//        bos.flush();
+//        bos.close();
+        int len = buffer.writerIndex() - savedWriteIndex - HEADER_LENGTH;
         // checkPayload(url, ctx.channel(), len);
         //Bytes.int2bytes(len, header, 12);
         // slot [12, 13, 14, 15]
@@ -271,8 +270,8 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
             header.writeLong(response.getId());
 
             buffer.writerIndex(savedWriteIndex + HEADER_LENGTH);
-            ChannelBufferOutputStream bos = new ChannelBufferOutputStream(buffer);
-            ObjectOutput out = serialization.serialize(url, bos);
+            // ChannelBufferOutputStream bos = new ChannelBufferOutputStream(buffer);
+            ObjectOutput out = serialization.serialize(url, buffer);
             // encode response data or error message.
             if (status == Response.OK) {
                 if (response.isHeartbeat()) {
@@ -282,10 +281,11 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
                 }
             } else out.writeUTF(response.getErrorMessage());
             out.flushBuffer();
-            bos.flush();
-            bos.close();
+//            bos.flush();
+//            bos.close();
 
-            int len = bos.writtenBytes();
+//            int len = bos.writtenBytes();
+            int len = buffer.writerIndex() - savedWriteIndex - HEADER_LENGTH;
             // checkPayload(url, ctx.channel(), len);
             // slot [12, 13, 14, 15]
             header.writeInt(len);

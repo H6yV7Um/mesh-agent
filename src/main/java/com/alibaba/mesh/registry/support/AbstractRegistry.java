@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public abstract class AbstractRegistry implements Registry {
 
-    // URL address separator, used in file cache, service provider URL separation
+    // URL address lineSeparator, used in file cache, service provider URL separation
     private static final char URL_SEPARATOR = ' ';
     // URL address separated regular expression for parsing the service provider URL list in the file cache
     private static final String URL_SPLIT = "\\s+";

@@ -5,6 +5,8 @@ import com.alibaba.mesh.common.serialize.ObjectInput;
 import com.alibaba.mesh.common.serialize.ObjectOutput;
 import com.alibaba.mesh.common.serialize.Serialization;
 
+import io.netty.buffer.ByteBuf;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,7 +26,7 @@ public class FastJsonSerialization implements Serialization {
     }
 
     @Override
-    public ObjectOutput serialize(URL url, OutputStream output) throws IOException {
+    public ObjectOutput serialize(URL url, ByteBuf output) throws IOException {
         return new FastJsonObjectOutput(output);
     }
 

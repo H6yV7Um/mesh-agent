@@ -9,6 +9,7 @@ echo ETCD_URL = $ETCD_URL
 if [[ "$1" == "consumer" ]]; then
   echo "Starting consumer agent..."
   java -jar \
+       -XX:+UseBoundThreads \
        -Xms1536M \
        -Xmx1536M \
        -Dtype=consumer \
@@ -19,6 +20,7 @@ if [[ "$1" == "consumer" ]]; then
 elif [[ "$1" == "provider-small" ]]; then
   echo "Starting small provider agent..."
   java -jar \
+       -XX:+UseBoundThreads \
        -Xms512M \
        -Xmx512M \
        -Dtype=provider \
@@ -31,6 +33,7 @@ elif [[ "$1" == "provider-small" ]]; then
 elif [[ "$1" == "provider-medium" ]]; then
   echo "Starting medium provider agent..."
   java -jar \
+       -XX:+UseBoundThreads \
        -Xms1536M \
        -Xmx1536M \
        -Dtype=provider \
@@ -39,10 +42,12 @@ elif [[ "$1" == "provider-medium" ]]; then
        -Dserver.port=30000 \
        -Detcd.url=$ETCD_URL \
        -Dlogs.dir=/root/logs \
-       /root/dists/mesh-agent.jar
+       /Users/Jason/opensource/middlewarerace/mesh-agent/target/mesh-agent-0.0.1-SNAPSHOT.jar
+
 elif [[ "$1" == "provider-large" ]]; then
   echo "Starting large provider agent..."
   java -jar \
+       -XX:+UseBoundThreads \
        -Xms2560M \
        -Xmx2560M \
        -Dtype=provider \
