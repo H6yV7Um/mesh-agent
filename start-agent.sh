@@ -42,8 +42,7 @@ elif [[ "$1" == "provider-medium" ]]; then
        -Dserver.port=30000 \
        -Detcd.url=$ETCD_URL \
        -Dlogs.dir=/root/logs \
-       /Users/Jason/opensource/middlewarerace/mesh-agent/target/mesh-agent-0.0.1-SNAPSHOT.jar
-
+       /root/dists/mesh-agent.jar
 elif [[ "$1" == "provider-large" ]]; then
   echo "Starting large provider agent..."
   java -jar \
