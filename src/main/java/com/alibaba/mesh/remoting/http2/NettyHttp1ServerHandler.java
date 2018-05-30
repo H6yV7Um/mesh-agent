@@ -129,10 +129,6 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             parameterValue[0] = body.readCharSequence(body.readableBytes(), utf8);
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("received parameter:" + parameterValue[0]);
-            }
-
             // internel alreay used queue, we alse use response queue
             delegate.$invoke("hash", parameterType, parameterValue);
             RpcContext.getContext().getResponseFuture()
