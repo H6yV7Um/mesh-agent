@@ -52,10 +52,6 @@ final class NettyDecodebytesAdapter {
                     saveReaderIndex = buffer.readerIndex();
                     break;
                 } else {
-                    //is it possible to go here ?
-                    if (saveReaderIndex == buffer.readerIndex()) {
-                        throw new IOException("Decode without read data.");
-                    }
                     if (msg != null) {
                         out.add(msg);
                     }

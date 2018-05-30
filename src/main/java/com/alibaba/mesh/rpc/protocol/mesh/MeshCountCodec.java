@@ -2,7 +2,7 @@ package com.alibaba.mesh.rpc.protocol.mesh;
 
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.remoting.Codec4;
-import com.alibaba.mesh.remoting.exchange.MultiMessage;
+import com.alibaba.mesh.remoting.CodecOutputList;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
 import com.alibaba.mesh.rpc.RpcInvocation;
@@ -25,7 +25,7 @@ public final class MeshCountCodec implements Codec4 {
     @Override
     public Object decode(ChannelHandlerContext ctx, ByteBuf buffer) throws IOException {
         int save = buffer.readerIndex();
-        MultiMessage result = MultiMessage.create();
+        CodecOutputList out = CodecOutputList.newInstance();
         do {
             Object obj = codec.decode(ctx, buffer);
             if (DecodeResult.NEED_MORE_INPUT == obj) {
@@ -34,18 +34,18 @@ public final class MeshCountCodec implements Codec4 {
                 save = buffer.readerIndex();
                 break;
             } else {
-                result.addMessage(obj);
-                logMessageLength(obj, buffer.readerIndex() - save);
+                out.add(obj);
+                // logMessageLength(obj, buffer.readerIndex() - save);
                 save = buffer.readerIndex();
             }
         } while (true);
-        if (result.isEmpty()) {
+        if (out.isEmpty()) {
             return DecodeResult.NEED_MORE_INPUT;
         }
-        if (result.size() == 1) {
-            return result.get(0);
+        if (out.size() == 1) {
+            return out.get(0);
         }
-        return result;
+        return out;
     }
 
     private void logMessageLength(Object result, int bytes) {

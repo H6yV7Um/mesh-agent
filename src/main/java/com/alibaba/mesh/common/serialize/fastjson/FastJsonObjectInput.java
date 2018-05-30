@@ -24,55 +24,63 @@ public class FastJsonObjectInput implements ObjectInput {
     @Override
     public boolean readBool() throws IOException {
         boolean v = reader.readBoolean();
-        verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
+        //verifyLine();
         return v;
     }
 
     @Override
     public byte readByte() throws IOException {
         byte v = reader.readByte();
-        verifyLine();
+        //verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public short readShort() throws IOException {
         short v = reader.readShort();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public int readInt() throws IOException {
         int v = reader.readInt();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public long readLong() throws IOException {
         long v = reader.readLong();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public float readFloat() throws IOException {
         float v = reader.readFloat();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public double readDouble() throws IOException {
         double v = reader.readDouble();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 
     @Override
     public String readUTF() throws IOException {
-        verifyQuotation();
+        // verifyQuotation();
+        reader.readerIndex(reader.readerIndex() + 1);
         int i = reader.forEachByte(reader.readerIndex(), reader.readableBytes(), new ByteProcessor() {
             byte prev;
 
@@ -85,8 +93,9 @@ public class FastJsonObjectInput implements ObjectInput {
             }
         });
         String v = reader.readCharSequence(i - reader.readerIndex() - 1, ascii).toString();
-        verifyQuotation();
-        verifyLine();
+        // verifyQuotation();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 2);
         return v;
     }
 
@@ -102,7 +111,8 @@ public class FastJsonObjectInput implements ObjectInput {
         });
         byte[] bytes = new byte[i - reader.readerIndex() - 1];
         reader.readBytes(bytes, 0, bytes.length);
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return bytes;
     }
 
@@ -125,8 +135,9 @@ public class FastJsonObjectInput implements ObjectInput {
                 }
             });
             String v = reader.readCharSequence(i - reader.readerIndex() - 1, ascii).toString();
-            verifyQuotation();
-            verifyLine();
+            // verifyQuotation();
+            // verifyLine();
+            reader.readerIndex(reader.readerIndex() + 2);
             return v;
         }
 
@@ -140,7 +151,8 @@ public class FastJsonObjectInput implements ObjectInput {
             }
         });
         String v = reader.readCharSequence(i - reader.readerIndex(), ascii).toString();
-        verifyLine();
+        // verifyLine();
+        reader.readerIndex(reader.readerIndex() + 1);
         return v;
     }
 

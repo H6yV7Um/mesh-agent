@@ -180,7 +180,7 @@ public final class CodecOutputList extends AbstractList<Object> implements Rando
     /**
      * Returns the element on the given index. This operation will not do any range-checks and so is considered unsafe.
      */
-    Object getUnsafe(int index) {
+    public Object getUnsafe(int index) {
         return array[index];
     }
 

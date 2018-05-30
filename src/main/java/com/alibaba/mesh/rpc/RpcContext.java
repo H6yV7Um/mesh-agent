@@ -5,6 +5,8 @@ import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.remoting.exchange.ResponseFuture;
 
+import io.netty.util.concurrent.FastThreadLocal;
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +32,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class RpcContext {
 
-    private static final ThreadLocal<RpcContext> LOCAL = new ThreadLocal<RpcContext>() {
+    private static final FastThreadLocal<RpcContext> LOCAL = new FastThreadLocal<RpcContext>() {
         @Override
         protected RpcContext initialValue() {
             return new RpcContext();

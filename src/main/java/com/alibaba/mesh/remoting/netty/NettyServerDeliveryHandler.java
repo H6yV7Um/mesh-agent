@@ -153,7 +153,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         @Override
         protected void initChannel(Channel ch) throws Exception {
             NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codeable, url);
-            ;
             ch.pipeline()
                     .addLast("remote-decoder", adapter.getDecoder())
                     .addLast("remote-inbound", new RemoteInboundChannelHandler());

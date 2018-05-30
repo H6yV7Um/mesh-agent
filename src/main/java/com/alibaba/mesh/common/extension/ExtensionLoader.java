@@ -415,15 +415,15 @@ public class ExtensionLoader<T> {
             cachedInstances.putIfAbsent(name, new Holder<Object>());
             holder = cachedInstances.get(name);
         }
-        T instance = (T)holder.get();
+        T instance = (T) holder.get();
         if (instance == null) {
             synchronized (holder) {
-                instance = (T)holder.get();
+                instance = (T) holder.get();
                 if (instance == null) {
 
                     Map<String, Object> nameMap = EXTENSION_CACHE_NAME.get(type);
                     if (nameMap != null) {
-                        instance = (T)nameMap.get(name);
+                        instance = (T) nameMap.get(name);
                         if (instance != null) {
                             injectExtension(instance);
                             holder.set(instance);
