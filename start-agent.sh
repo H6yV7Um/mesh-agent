@@ -9,9 +9,11 @@ echo ETCD_URL = $ETCD_URL
 if [[ "$1" == "consumer" ]]; then
   echo "Starting consumer agent..."
   java -jar \
-       -XX:+UseBoundThreads \
        -Xms1536M \
        -Xmx1536M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=consumer \
        -Dserver.port=20000 \
        -Detcd.url=$ETCD_URL \
@@ -20,9 +22,11 @@ if [[ "$1" == "consumer" ]]; then
 elif [[ "$1" == "provider-small" ]]; then
   echo "Starting small provider agent..."
   java -jar \
-       -XX:+UseBoundThreads \
        -Xms512M \
        -Xmx512M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=16 \
        -Ddubbo.protocol.port=20880 \
@@ -33,9 +37,11 @@ elif [[ "$1" == "provider-small" ]]; then
 elif [[ "$1" == "provider-medium" ]]; then
   echo "Starting medium provider agent..."
   java -jar \
-       -XX:+UseBoundThreads \
        -Xms1536M \
        -Xmx1536M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=32 \
        -Ddubbo.protocol.port=20880 \
@@ -47,9 +53,11 @@ elif [[ "$1" == "provider-medium" ]]; then
 elif [[ "$1" == "provider-large" ]]; then
   echo "Starting large provider agent..."
   java -jar \
-       -XX:+UseBoundThreads \
        -Xms2560M \
        -Xmx2560M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=48 \
        -Ddubbo.protocol.port=20880 \

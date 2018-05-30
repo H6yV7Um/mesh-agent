@@ -207,7 +207,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
 
         Serialization serialization = getSerialization(url);
         // header.
-        ByteBuf header = ctx.alloc().buffer(HEADER_LENGTH);
+        ByteBuf header = ctx.alloc().buffer();
         // set magic number.
         header.writeShort(MAGIC);
 
@@ -256,7 +256,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         try {
             Serialization serialization = getSerialization(url);
             // header.
-            ByteBuf header = ctx.alloc().buffer(HEADER_LENGTH);
+            ByteBuf header = ctx.alloc().buffer();
             // set magic number.
             header.writeShort(MAGIC);
             // set request and serialization flag.

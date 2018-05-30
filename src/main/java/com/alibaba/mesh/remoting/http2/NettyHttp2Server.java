@@ -26,7 +26,7 @@ public class NettyHttp2Server {
 
     URL serverUrl = URL.valueOf("http://localhost:20000");
 
-//    EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
+    EventLoopGroup group = new NioEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
 //    EpollEventLoopGroup group = new EpollEventLoopGroup(Math.min(4, Runtime.getRuntime().availableProcessors()));
 
     Channel ch;
@@ -40,8 +40,8 @@ public class NettyHttp2Server {
         b.option(ChannelOption.SO_BACKLOG, 1024);
         // reuse netty client worker group
         try {
-//            b.group(group, NettyClient.nioWorkerGroup)
-            b.group(NettyClient.nioWorkerGroup, NettyClient.nioWorkerGroup)
+            b.group(group, NettyClient.nioWorkerGroup)
+//            b.group(NettyClient.nioWorkerGroup, NettyClient.nioWorkerGroup)
                     .channel(NioServerSocketChannel.class)
 //                    .channel(NioServerSocketChannel.class)
                     // .handler(new LoggingHandler(LogLevel.INFO))

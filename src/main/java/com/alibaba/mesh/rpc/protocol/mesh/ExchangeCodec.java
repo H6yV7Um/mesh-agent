@@ -252,7 +252,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
         Serialization serialization = CodecSupport.getSerialization(url);
         // header.
-        ByteBuf header = ctx.alloc().buffer(HEADER_LENGTH);
+        ByteBuf header = ctx.alloc().buffer();
         // set magic number.
         // slot [0, 1]
         header.writeShort(MAGIC);
@@ -317,12 +317,12 @@ public abstract class ExchangeCodec extends AbstractCodec {
     protected void encodeResponse(ChannelHandlerContext ctx, ByteBuf buffer, Response response) throws IOException {
         int savedWriteIndex = buffer.writerIndex();
         try {
-
+            
             Channel channel = ctx.channel();
             URL url = channel.attr(Keys.URL_KEY).get();
 
             // header.
-            ByteBuf header = ctx.alloc().buffer(HEADER_LENGTH);
+            ByteBuf header = ctx.alloc().buffer();
             // set magic number.
             // slot [0, 1]
             header.writeShort(MAGIC);
