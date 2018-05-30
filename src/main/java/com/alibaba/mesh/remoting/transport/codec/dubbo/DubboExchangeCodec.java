@@ -111,29 +111,31 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        ChannelBufferInputStream is = new ChannelBufferInputStream(buffer, len);
+//        ChannelBufferInputStream is = new ChannelBufferInputStream(buffer, len);
 
-        try {
-            return decodeBody(ctx, url, is, header);
-        } finally {
-            if (is.available() > 0) {
-                try {
-                    if (logger.isWarnEnabled()) {
-                        logger.warn("Skip input stream " + is.available());
-                    }
-                    is.skip(is.available());
-                } catch (IOException e) {
-                    logger.warn(e.getMessage(), e);
-                }
-            }
-        }
+        return decodeBody(ctx, url, buffer, header);
+
+//        try {
+//            return decodeBody(ctx, url, buffer, header);
+//        } finally {
+//            if (is.available() > 0) {
+//                try {
+//                    if (logger.isWarnEnabled()) {
+//                        logger.warn("Skip input stream " + is.available());
+//                    }
+//                    is.skip(is.available());
+//                } catch (IOException e) {
+//                    logger.warn(e.getMessage(), e);
+//                }
+//            }
+//        }
     }
 
-    protected Object decodeBody(ChannelHandlerContext ctx, URL url, InputStream is, ByteBuf header) throws IOException {
+    protected Object decodeBody(ChannelHandlerContext ctx, URL url, ByteBuf buffer, ByteBuf header) throws IOException {
         byte flag = header.getByte(2), proto = (byte) (flag & SERIALIZATION_MASK);
 //        Serialization s = CodecSupport.getSerialization(url, proto);
         Serialization s = CodecSupport.getSerialization(url);
-        ObjectInput in = s.deserialize(url, is);
+        ObjectInput in = s.deserialize(url, buffer);
         // get request id.
         long id = header.getLong(4);
         if ((flag & FLAG_REQUEST) == 0) {

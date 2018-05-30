@@ -3,7 +3,6 @@ package com.alibaba.mesh.remoting.transport.codec.dubbo;
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.Version;
-import com.alibaba.mesh.common.io.UnsafeByteArrayInputStream;
 import com.alibaba.mesh.common.serialize.ObjectInput;
 import com.alibaba.mesh.common.serialize.ObjectOutput;
 import com.alibaba.mesh.common.serialize.Serialization;
@@ -12,8 +11,6 @@ import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.remoting.http2.NettyHttp1ServerHandler;
-import com.alibaba.mesh.remoting.netty.NettyServerDeliveryHandler;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Result;
@@ -26,9 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Objects;
 
 /**
  * @author yiji
@@ -38,14 +32,17 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
     public static final String NAME = "dubbo";
     public static final String DUBBO_VERSION = Version.getVersion(DubboCodable.class, Version.getVersion());
     public static final byte RESPONSE_WITH_EXCEPTION = 0;
+    public static final byte RESPONSE_WITH_EXCEPTION48 = 48;
     public static final byte RESPONSE_VALUE = 1;
+    public static final byte RESPONSE_VALUE49 = 49;
     public static final byte RESPONSE_NULL_VALUE = 2;
+    public static final byte RESPONSE_NULL_VALUE50 = 50;
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     public static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
     private static final Logger log = LoggerFactory.getLogger(DubboCodable.class);
 
     @Override
-    protected Object decodeBody(ChannelHandlerContext ctx, URL url, InputStream is, ByteBuf header) throws IOException {
+    protected Object decodeBody(ChannelHandlerContext ctx, URL url, ByteBuf buffer, ByteBuf header) throws IOException {
         byte flag = header.getByte(2), proto = (byte) (flag & SERIALIZATION_MASK);
         Serialization s = CodecSupport.getSerialization(url);
         // get request id.
@@ -63,20 +60,19 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
                 try {
                     Object data;
                     if (res.isHeartbeat()) {
-                        data = decodeHeartbeatData(ctx, deserialize(s, url, is));
+                        data = decodeHeartbeatData(ctx, deserialize(s, url, buffer));
                     } else if (res.isEvent()) {
-                        data = decodeEventData(ctx, deserialize(s, url, is));
+                        data = decodeEventData(ctx, deserialize(s, url, buffer));
                     } else {
                         DecodeableRpcResult result;
                         if (url.getParameter(
                                 Constants.DECODE_IN_IO_THREAD_KEY,
                                 Constants.DEFAULT_DECODE_IN_IO_THREAD)) {
-                            result = new DecodeableRpcResult(ctx.channel(), res, is,
+                            result = new DecodeableRpcResult(ctx.channel(), res, buffer,
                                     (Invocation) getRequestData(id), proto);
                             result.decode();
                         } else {
-                            result = new DecodeableRpcResult(ctx.channel(), res,
-                                    new UnsafeByteArrayInputStream(readMessageData(is)),
+                            result = new DecodeableRpcResult(ctx.channel(), res, buffer,
                                     (Invocation) getRequestData(id), proto);
                         }
                         data = result;
@@ -90,7 +86,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
                     res.setErrorMessage(StringUtils.toString(t));
                 }
             } else {
-                res.setErrorMessage(deserialize(s, url, is).readUTF());
+                res.setErrorMessage(deserialize(s, url, buffer).readUTF());
             }
             return res;
         } else {
@@ -104,19 +100,19 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             try {
                 Object data;
                 if (req.isHeartbeat()) {
-                    data = decodeHeartbeatData(ctx, deserialize(s, url, is));
+                    data = decodeHeartbeatData(ctx, deserialize(s, url, buffer));
                 } else if (req.isEvent()) {
-                    data = decodeEventData(ctx, deserialize(s, url, is));
+                    data = decodeEventData(ctx, deserialize(s, url, buffer));
                 } else {
                     DecodeableRpcInvocation inv;
                     if (url.getParameter(
                             Constants.DECODE_IN_IO_THREAD_KEY,
                             Constants.DEFAULT_DECODE_IN_IO_THREAD)) {
-                        inv = new DecodeableRpcInvocation(ctx.channel(), req, is, proto);
+                        inv = new DecodeableRpcInvocation(ctx.channel(), req, buffer, proto);
                         inv.decode();
                     } else {
                         inv = new DecodeableRpcInvocation(ctx.channel(), req,
-                                new UnsafeByteArrayInputStream(readMessageData(is)), proto);
+                                buffer, proto);
                     }
                     data = inv;
                 }
@@ -133,15 +129,15 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
         }
     }
 
-    private ObjectInput deserialize(Serialization serialization, URL url, InputStream is)
+    private ObjectInput deserialize(Serialization serialization, URL url, ByteBuf buffer)
             throws IOException {
-        return serialization.deserialize(url, is);
+        return serialization.deserialize(url, buffer);
     }
 
-    private byte[] readMessageData(InputStream is) throws IOException {
-        if (is.available() > 0) {
-            byte[] result = new byte[is.available()];
-            is.read(result);
+    private byte[] readMessageData(ByteBuf input) throws IOException {
+        if (input.readableBytes() > 0) {
+            byte[] result = new byte[input.readableBytes()];
+            input.readBytes(result, 0, result.length);
             return result;
         }
         return new byte[]{};

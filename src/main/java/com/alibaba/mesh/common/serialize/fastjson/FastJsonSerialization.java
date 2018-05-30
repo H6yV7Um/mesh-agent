@@ -31,7 +31,7 @@ public class FastJsonSerialization implements Serialization {
     }
 
     @Override
-    public ObjectInput deserialize(URL url, InputStream input) throws IOException {
+    public ObjectInput deserialize(URL url, ByteBuf input) throws IOException {
         return new FastJsonObjectInput(input);
     }
 

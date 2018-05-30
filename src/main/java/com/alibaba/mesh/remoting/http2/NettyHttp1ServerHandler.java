@@ -1,5 +1,6 @@
 package com.alibaba.mesh.remoting.http2;
 
+import com.alibaba.mesh.common.serialize.fastjson.FastJsonObjectInput;
 import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.Response;
 import com.alibaba.mesh.remoting.exchange.ResponseCallback;
@@ -257,16 +258,11 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
             Object ret = response.getResult();
 
-            RpcResult r = (RpcResult)ret;
-
-            if (r.getValue() == null) {
-                logger.error("http1 response received null value!!");
-                return;
-            }
+            RpcResult r = (RpcResult) ret;
 
             ByteBuf payload = ctx.alloc().buffer();
-            String result0 = String.valueOf(r.getValue());
-            payload.writeCharSequence(result0, utf8);
+            String result0 = (String) r.getValue();
+            payload.writeCharSequence(result0, FastJsonObjectInput.ascii);
             FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload, false);
             httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
             httpResponse.headers().set(CONNECTION, KEEP_ALIVE);

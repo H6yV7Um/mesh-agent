@@ -11,6 +11,7 @@ import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 import com.alibaba.mesh.rpc.RpcInvocation;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,24 +29,24 @@ public class DecodeableRpcInvocation extends RpcInvocation implements Decodeable
 
     private byte serializationType;
 
-    private InputStream inputStream;
+    private ByteBuf input;
 
     private Request request;
 
     private volatile boolean hasDecoded;
 
-    public DecodeableRpcInvocation(Channel channel, Request request, InputStream is, byte id) {
+    public DecodeableRpcInvocation(Channel channel, Request request, ByteBuf input, byte id) {
         this.channel = channel;
         this.request = request;
-        this.inputStream = is;
+        this.input = input;
         this.serializationType = id;
     }
 
     @Override
     public void decode() throws Exception {
-        if (!hasDecoded && channel != null && inputStream != null) {
+        if (!hasDecoded && channel != null && input != null) {
             try {
-                decode(channel, inputStream);
+                decode(channel, input);
             } catch (Throwable e) {
                 if (log.isWarnEnabled()) {
                     log.warn("Decode rpc invocation failed: " + e.getMessage(), e);
@@ -58,7 +59,7 @@ public class DecodeableRpcInvocation extends RpcInvocation implements Decodeable
         }
     }
 
-    public Object decode(Channel channel, InputStream input) throws IOException {
+    public Object decode(Channel channel, ByteBuf input) throws IOException {
 
         URL url = channel.attr(Keys.URL_KEY).get();
 

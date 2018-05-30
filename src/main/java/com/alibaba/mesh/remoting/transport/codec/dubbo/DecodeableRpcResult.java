@@ -2,7 +2,6 @@ package com.alibaba.mesh.remoting.transport.codec.dubbo;
 
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.serialize.ObjectInput;
-import com.alibaba.mesh.common.utils.RpcUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Decodeable;
 import com.alibaba.mesh.remoting.Keys;
@@ -11,13 +10,12 @@ import com.alibaba.mesh.remoting.transport.CodecSupport;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.RpcResult;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
 
 public class DecodeableRpcResult extends RpcResult implements Decodeable {
 
@@ -27,7 +25,7 @@ public class DecodeableRpcResult extends RpcResult implements Decodeable {
 
     private byte serializationType;
 
-    private InputStream inputStream;
+    private ByteBuf input;
 
     private Response response;
 
@@ -35,37 +33,35 @@ public class DecodeableRpcResult extends RpcResult implements Decodeable {
 
     private volatile boolean hasDecoded;
 
-    public DecodeableRpcResult(Channel channel, Response response, InputStream is, Invocation invocation, byte id) {
+    public DecodeableRpcResult(Channel channel, Response response, ByteBuf input, Invocation invocation, byte id) {
         this.channel = channel;
         this.response = response;
-        this.inputStream = is;
+        this.input = input;
         this.invocation = invocation;
         this.serializationType = id;
     }
 
-    public Object decode(Channel channel, InputStream input) throws IOException {
+    public Object decode(Channel channel, ByteBuf input) throws IOException {
 
         URL url = channel.attr(Keys.URL_KEY).get();
 
         ObjectInput in = CodecSupport.getSerialization(url)
                 .deserialize(url, input);
-//        ObjectInput in = CodecSupport.getSerialization(url, serializationType)
-//                .deserialize(url, input);
-        
+
         byte flag = in.readByte();
         switch (flag) {
+            case DubboCodable.RESPONSE_NULL_VALUE50:
             case DubboCodable.RESPONSE_NULL_VALUE:
                 break;
+            case DubboCodable.RESPONSE_VALUE49:
             case DubboCodable.RESPONSE_VALUE:
                 try {
-                    Type[] returnType = RpcUtils.getReturnTypes(invocation);
-                    setValue(returnType == null || returnType.length == 0 ? in.readObject() :
-                            (returnType.length == 1 ? in.readObject((Class<?>) returnType[0])
-                                    : in.readObject((Class<?>) returnType[0], returnType[1])));
+                    setValue(in.readObject());
                 } catch (ClassNotFoundException e) {
                     throw new IOException(StringUtils.toString("Read response data failed.", e));
                 }
                 break;
+            case DubboCodable.RESPONSE_WITH_EXCEPTION48:
             case DubboCodable.RESPONSE_WITH_EXCEPTION:
                 try {
                     Object obj = in.readObject();
@@ -84,9 +80,9 @@ public class DecodeableRpcResult extends RpcResult implements Decodeable {
 
     @Override
     public void decode() throws Exception {
-        if (!hasDecoded && channel != null && inputStream != null) {
+        if (!hasDecoded && channel != null && input != null) {
             try {
-                decode(channel, inputStream);
+                decode(channel, input);
             } catch (Throwable e) {
                 if (log.isWarnEnabled()) {
                     log.warn("Decode rpc result failed: " + e.getMessage(), e);

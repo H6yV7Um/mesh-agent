@@ -1,100 +1,173 @@
 package com.alibaba.mesh.common.serialize.fastjson;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.mesh.common.serialize.ObjectInput;
-import com.alibaba.mesh.common.utils.PojoUtils;
 
-import java.io.BufferedReader;
-import java.io.EOFException;
+import io.netty.buffer.ByteBuf;
+import io.netty.util.ByteProcessor;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
 
 public class FastJsonObjectInput implements ObjectInput {
 
-    private final BufferedReader reader;
+    private final ByteBuf reader;
 
-    public FastJsonObjectInput(InputStream in) {
-        this(new InputStreamReader(in));
-    }
+    public static final Charset ascii = Charset.forName("US-ASCII");
+    public static final byte lineSeparator = System.getProperty("line.separator").getBytes(ascii)[0];
+    public static final byte doubleQuotation = "\"".getBytes(ascii)[0];
 
-    public FastJsonObjectInput(Reader reader) {
-        this.reader = new BufferedReader(reader);
+    public FastJsonObjectInput(ByteBuf reader) {
+        this.reader = reader;
     }
 
     @Override
     public boolean readBool() throws IOException {
-        return read(boolean.class);
+        boolean v = reader.readBoolean();
+        verifyLine();
+        return v;
     }
 
     @Override
     public byte readByte() throws IOException {
-        return read(byte.class);
+        byte v = reader.readByte();
+        verifyLine();
+        return v;
     }
 
     @Override
     public short readShort() throws IOException {
-        return read(short.class);
+        short v = reader.readShort();
+        verifyLine();
+        return v;
     }
 
     @Override
     public int readInt() throws IOException {
-        return read(int.class);
+        int v = reader.readInt();
+        verifyLine();
+        return v;
     }
 
     @Override
     public long readLong() throws IOException {
-        return read(long.class);
+        long v = reader.readLong();
+        verifyLine();
+        return v;
     }
 
     @Override
     public float readFloat() throws IOException {
-        return read(float.class);
+        float v = reader.readFloat();
+        verifyLine();
+        return v;
     }
 
     @Override
     public double readDouble() throws IOException {
-        return read(double.class);
+        double v = reader.readDouble();
+        verifyLine();
+        return v;
     }
 
     @Override
     public String readUTF() throws IOException {
-        return read(String.class);
+        verifyQuotation();
+        int i = reader.forEachByte(reader.readerIndex(), reader.readableBytes(), new ByteProcessor() {
+            byte prev;
+
+            @Override
+            public boolean process(byte value) throws Exception {
+                if (prev == doubleQuotation && value == lineSeparator)
+                    return false;
+                prev = value;
+                return true;
+            }
+        });
+        String v = reader.readCharSequence(i - reader.readerIndex() - 1, ascii).toString();
+        verifyQuotation();
+        verifyLine();
+        return v;
     }
 
     @Override
     public byte[] readBytes() throws IOException {
-        return readLine().getBytes();
+        int i = reader.forEachByte(reader.readerIndex(), reader.readableBytes(), new ByteProcessor() {
+            @Override
+            public boolean process(byte value) throws Exception {
+                if (value == lineSeparator)
+                    return false;
+                return true;
+            }
+        });
+        byte[] bytes = new byte[i - reader.readerIndex() - 1];
+        reader.readBytes(bytes, 0, bytes.length);
+        verifyLine();
+        return bytes;
     }
 
     @Override
     public Object readObject() throws IOException, ClassNotFoundException {
-        String json = readLine();
-        return JSON.parse(json);
+
+        reader.markReaderIndex();
+        byte b = reader.readByte();
+        // for string
+        if (b == doubleQuotation) {
+            int i = reader.forEachByte(reader.readerIndex(), reader.readableBytes(), new ByteProcessor() {
+                byte prev;
+
+                @Override
+                public boolean process(byte value) throws Exception {
+                    if (prev == doubleQuotation && value == lineSeparator)
+                        return false;
+                    prev = value;
+                    return true;
+                }
+            });
+            String v = reader.readCharSequence(i - reader.readerIndex() - 1, ascii).toString();
+            verifyQuotation();
+            verifyLine();
+            return v;
+        }
+
+        reader.resetReaderIndex();
+        int i = reader.forEachByte(reader.readerIndex(), reader.readableBytes(), new ByteProcessor() {
+            @Override
+            public boolean process(byte value) throws Exception {
+                if (value == lineSeparator)
+                    return false;
+                return true;
+            }
+        });
+        String v = reader.readCharSequence(i - reader.readerIndex(), ascii).toString();
+        verifyLine();
+        return v;
     }
 
     @Override
     public <T> T readObject(Class<T> cls) throws IOException, ClassNotFoundException {
-        return read(cls);
+        return (T) readObject();
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T readObject(Class<T> cls, Type type) throws IOException, ClassNotFoundException {
-        Object value = readObject(cls);
-        return (T) PojoUtils.realize(value, cls, type);
+        return (T) readObject();
     }
 
-    private String readLine() throws IOException, EOFException {
-        String line = reader.readLine();
-        if (line == null || line.trim().length() == 0) throw new EOFException();
-        return line;
+    private void verifyLine() {
+        byte b = reader.readByte();
+        if (lineSeparator != b) {
+            throw new RuntimeException("Failed to deserialize object, expected '"
+                    + lineSeparator + "'" + " actual '" + b + "'");
+        }
     }
 
-    private <T> T read(Class<T> cls) throws IOException {
-        String json = readLine();
-        return JSON.parseObject(json, cls);
+    private void verifyQuotation() {
+        byte b = reader.readByte();
+        if (doubleQuotation != b) {
+            throw new RuntimeException("Failed to deserialize object, expected '"
+                    + doubleQuotation + "'" + " actual '" + b + "'");
+        }
     }
 }
