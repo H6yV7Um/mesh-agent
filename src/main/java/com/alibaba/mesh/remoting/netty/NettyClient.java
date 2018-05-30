@@ -30,7 +30,8 @@ public class NettyClient extends AbstractClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
+    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()), new DefaultThreadFactory("NettyClientWorker", true));
+//    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
 //    public static final EpollEventLoopGroup nioWorkerGroup = new EpollEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
 
     private Bootstrap bootstrap;
@@ -45,6 +46,7 @@ public class NettyClient extends AbstractClient {
 
     @Override
     protected void doOpen() throws Throwable {
+        logger.warn("available processors: " + Runtime.getRuntime().availableProcessors());
         final NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), this);
         bootstrap = new Bootstrap();
         bootstrap.group(nioWorkerGroup)

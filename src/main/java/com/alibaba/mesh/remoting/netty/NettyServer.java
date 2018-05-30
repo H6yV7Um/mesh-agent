@@ -58,15 +58,17 @@ public class NettyServer extends AbstractServer implements Server {
 
 //        bossGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
 //                new DefaultThreadFactory("NettyServerBoss", true));
+        logger.warn("available processors: " + Runtime.getRuntime().availableProcessors());
         bossGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()),
                 new DefaultThreadFactory("NettyServerBoss", true));
-        workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
-                new DefaultThreadFactory("NettyServerWorker", true));
+//        workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
+//                new DefaultThreadFactory("NettyServerWorker", true));
 
         final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
         channels = statisticHandler.getChannels();
 
-        bootstrap.group(bossGroup, workerGroup)
+        bootstrap.group(bossGroup, bossGroup)
+//        bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
 //                .channel(EpollServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
