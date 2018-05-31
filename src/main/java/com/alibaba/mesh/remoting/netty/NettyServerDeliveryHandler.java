@@ -6,6 +6,7 @@ import com.alibaba.mesh.common.extension.ExtensionLoader;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.ChannelHandler;
 import com.alibaba.mesh.remoting.Codeable;
+import com.alibaba.mesh.remoting.CodecOutputList;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
@@ -130,11 +131,12 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         requestIdMap.put(request.getRemoteId(), request);
 
         // received message from mesh consumer
-        if (future.channel().isActive()) {
-            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), true);
-        } else {
-            writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
-        }
+        writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        writeToEndpoint.scheduleFlush();
     }
 
     @Override
@@ -165,37 +167,80 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
          */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object message) throws RemotingException {
-            // received message from endpoint
-            ByteBuf payload = (ByteBuf) message;
-            long remoteId = codeable.getRequestId(payload);
 
-            boolean isEvent = codeable.isEvent(payload);
+            CodecOutputList list = (CodecOutputList) message;
 
-            if (isEvent) {
-                payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
-                payload.setByte(3, Response.OK);
-                ctx.writeAndFlush(payload, ctx.voidPromise());
-                System.out.println("endpoint event received and responsed, id: " + remoteId);
-                return;
-            }
+            int i = 0, size = list.size();
+            if (size == 1) {
+                // received message from endpoint
+                ByteBuf payload = (ByteBuf) list.getUnsafe(i);
+                long remoteId = codeable.getRequestId(payload);
 
-            byte status = codeable.getStatus(payload);
-            Request request = requestIdMap.remove(remoteId);
-            if (request != null) {
-                if (status != Response.OK) {
-                    System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);
+                boolean isEvent = codeable.isEvent(payload);
+
+                if (isEvent) {
+                    payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
+                    payload.setByte(3, Response.OK);
+                    ctx.writeAndFlush(payload, ctx.voidPromise());
+                    System.out.println("endpoint event received and responsed, id: " + remoteId);
                     return;
                 }
 
-                Response response = new Response(request.getId());
-                response.setStatus(status);
+                byte status = codeable.getStatus(payload);
+                Request request = requestIdMap.remove(remoteId);
+                if (request != null) {
+                    if (status != Response.OK) {
+                        System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);
+                        return;
+                    }
 
-                response.setId(request.getId());
-                response.setResult(payload);
+                    Response response = new Response(request.getId());
+                    response.setStatus(status);
 
-                NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
-                        NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
+                    response.setId(request.getId());
+                    response.setResult(payload);
+
+                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
+                }
+                return;
             }
+
+            for (; i < size; i++) {
+
+                ByteBuf payload = (ByteBuf) list.getUnsafe(i);
+                long remoteId = codeable.getRequestId(payload);
+
+                boolean isEvent = codeable.isEvent(payload);
+
+                if (isEvent) {
+                    payload.setByte(2, ExchangeCodec.FLAG_TWOWAY | ExchangeCodec.FLAG_EVENT | 6);
+                    payload.setByte(3, Response.OK);
+                    ctx.writeAndFlush(payload, ctx.voidPromise());
+                    System.out.println("endpoint event received and responsed, id: " + remoteId);
+                    return;
+                }
+
+                byte status = codeable.getStatus(payload);
+                Request request = requestIdMap.remove(remoteId);
+                if (request != null) {
+                    if (status != Response.OK) {
+                        System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);
+                        return;
+                    }
+
+                    Response response = new Response(request.getId());
+                    response.setStatus(status);
+
+                    response.setId(request.getId());
+                    response.setResult(payload);
+
+                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), false);
+                }
+            }
+
+            NettyServerDeliveryHandler.this.writeQueue.scheduleFlush();
         }
 
         @Override

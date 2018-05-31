@@ -1,12 +1,7 @@
 package com.alibaba.mesh.rpc.protocol.mesh;
 
-import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.remoting.Codec4;
 import com.alibaba.mesh.remoting.CodecOutputList;
-import com.alibaba.mesh.remoting.exchange.Request;
-import com.alibaba.mesh.remoting.exchange.Response;
-import com.alibaba.mesh.rpc.RpcInvocation;
-import com.alibaba.mesh.rpc.RpcResult;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,7 +30,6 @@ public final class MeshCountCodec implements Codec4 {
                 break;
             } else {
                 out.add(obj);
-                // logMessageLength(obj, buffer.readerIndex() - save);
                 save = buffer.readerIndex();
             }
         } while (true);
@@ -46,27 +40,6 @@ public final class MeshCountCodec implements Codec4 {
             return out.get(0);
         }
         return out;
-    }
-
-    private void logMessageLength(Object result, int bytes) {
-        if (bytes <= 0) {
-            return;
-        }
-        if (result instanceof Request) {
-            try {
-                ((RpcInvocation) ((Request) result).getData()).setAttachment(
-                        Constants.INPUT_KEY, String.valueOf(bytes));
-            } catch (Throwable e) {
-                /* ignore */
-            }
-        } else if (result instanceof Response) {
-            try {
-                ((RpcResult) ((Response) result).getResult()).setAttachment(
-                        Constants.OUTPUT_KEY, String.valueOf(bytes));
-            } catch (Throwable e) {
-                /* ignore */
-            }
-        }
     }
 
 }

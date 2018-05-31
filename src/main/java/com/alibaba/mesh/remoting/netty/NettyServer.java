@@ -80,11 +80,10 @@ public class NettyServer extends AbstractServer implements Server {
                         NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
                         NettyServerDeliveryHandler deliveryHandler = new NettyServerDeliveryHandler(getUrl(), NettyServer.this);
                         ch.pipeline()
-                                // .addLast("logging"  , new LoggingHandler(LogLevel.INFO))
-                                .addLast("decoder"  , adapter.getDecoder())
-                                .addLast("encoder"  , adapter.getEncoder())
+                                .addLast("decoder", adapter.getDecoder())
+                                .addLast("encoder", adapter.getEncoder())
                                 .addLast("statistic", statisticHandler)
-                                .addLast("handler"  , deliveryHandler);
+                                .addLast("handler", deliveryHandler);
                     }
                 });
         // bind

@@ -25,7 +25,7 @@ public class ChannelHandlers {
     }
 
     protected ChannelHandler wrapInternal(ChannelHandler handler, URL url) {
-        // return new MultiMessageHandlerSupport(new DeliveryDispatcher(handler, url));
-        return new DeliveryDispatcher(handler, url);
+        return new MultiMessageHandlerSupport(new DeliveryDispatcher(handler, url));
+//        return new DeliveryDispatcher(handler, url);
     }
 }
