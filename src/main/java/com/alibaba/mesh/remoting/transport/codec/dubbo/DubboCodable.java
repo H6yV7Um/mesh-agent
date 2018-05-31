@@ -269,7 +269,7 @@ public class DubboCodable extends DubboExchangeCodec implements Codeable {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
-        ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).copy(readerIndex, tt);//.retain();
+        ByteBuf unresolvedBuffer = buffer.readerIndex(readerIndex).slice(readerIndex, tt).retain();
         //String parameter = NettyServerDeliveryHandler.idParameterMap.get(unresolvedBuffer.getLong(4));
 
 //        if ((unresolvedBuffer.getByte(2) & FLAG_EVENT) == 0) {

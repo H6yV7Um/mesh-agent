@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * NettyCodecAdapter.
  */
-final class NettyDecodebytesAdapter {
+final class NettyCodecBytesAdapter {
 
     private final ChannelHandler decoder = new InternalDecoder0();
 
@@ -29,7 +29,7 @@ final class NettyDecodebytesAdapter {
 
     private final URL url;
 
-    public NettyDecodebytesAdapter(Codeable codec, URL url) {
+    public NettyCodecBytesAdapter(Codeable codec, URL url) {
         this.codec = codec;
         this.url = url;
     }
@@ -116,11 +116,13 @@ final class NettyDecodebytesAdapter {
                             callDecode(ctx, cumulation, out);
                         } finally {
                             if (cumulation != null) {
-                                if (!cumulation.isReadable()) {
+                                if (!cumulation.isReadable() && cumulation.refCnt() == 1) {
                                     cumulation.release();
                                     cumulation = null;
                                 } else {
-                                    cumulation.discardSomeReadBytes();
+                                    if(cumulation.refCnt() == 1){
+                                         cumulation.discardSomeReadBytes();
+                                    }
                                 }
                             }
                             data.release();

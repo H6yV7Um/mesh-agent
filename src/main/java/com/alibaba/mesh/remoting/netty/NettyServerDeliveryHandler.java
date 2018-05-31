@@ -47,7 +47,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
     private Codeable codeable;
 
-    public HashMap<Long, Request> requestIdMap = new HashMap<>(128 * 10);
+    public HashMap<Long, Request> requestIdMap = new HashMap<>(1048576);
 
     private WriteQueue writeQueue;
 
@@ -127,11 +127,26 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Request request = (Request) msg;
-        requestIdMap.put(request.getRemoteId(), request);
 
-        // received message from mesh consumer
-        writeToEndpoint.enqueue(new SendRequestCommand(request.getData(), future.channel().voidPromise()), false);
+        CodecOutputList list = (CodecOutputList) msg;
+
+        int i = 0, size = list.size();
+        if (size == 1) {
+            Request request = (Request) list.getUnsafe(i);
+            requestIdMap.put(request.getRemoteId(), request);
+            // received message from mesh consumer
+            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+            return;
+        }
+
+        for (; i < size; i++) {
+            ByteBuf payload = (ByteBuf) list.getUnsafe(i);
+            Request request = (Request) list.getUnsafe(i);
+            requestIdMap.put(request.getRemoteId(), request);
+            // received message from mesh consumer
+            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+        }
+
     }
 
     @Override
@@ -154,7 +169,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
         @Override
         protected void initChannel(Channel ch) throws Exception {
-            NettyDecodebytesAdapter adapter = new NettyDecodebytesAdapter(codeable, url);
+            NettyCodecBytesAdapter adapter = new NettyCodecBytesAdapter(codeable, url);
             ch.pipeline()
                     .addLast("remote-decoder", adapter.getDecoder())
                     .addLast("remote-inbound", new RemoteInboundChannelHandler());
@@ -200,7 +215,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
                             NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
                 }
                 return;
@@ -235,7 +250,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendRequestCommand(response,
+                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
                             NettyServerDeliveryHandler.this.serverCtx.voidPromise()), false);
                 }
             }

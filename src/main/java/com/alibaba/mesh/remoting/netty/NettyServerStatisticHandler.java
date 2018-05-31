@@ -39,20 +39,20 @@ public class NettyServerStatisticHandler extends ChannelDuplexHandler {
         if(!channels.containsKey(channel)){
             channels.put(channel, channel);
         }
-        handler.channelActive(ctx);
+        ctx.fireChannelActive();
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         channels.remove(ctx.channel());
-        handler.channelInactive(ctx);
+        ctx.fireChannelInactive();
     }
 
 
     @Override
     public void disconnect(ChannelHandlerContext ctx, ChannelPromise future)
             throws Exception {
-        handler.disconnect(ctx, future);
+        ctx.disconnect(future);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class NettyServerStatisticHandler extends ChannelDuplexHandler {
         if(!ctx.channel().isActive()){
             channels.remove(channel);
         }
-        handler.channelRead(ctx, msg);
+        ctx.fireChannelRead(msg);
     }
 
 
@@ -71,7 +71,7 @@ public class NettyServerStatisticHandler extends ChannelDuplexHandler {
         if(!channel.isActive()){
             channels.remove(channel);
         }
-        handler.write(ctx, msg, promise);
+        super.write(ctx, msg, promise);
     }
 
     @Override
@@ -81,6 +81,6 @@ public class NettyServerStatisticHandler extends ChannelDuplexHandler {
         if(!channel.isActive()){
             channels.remove(channel);
         }
-        handler.exceptionCaught(ctx, cause);
+        ctx.fireExceptionCaught(cause);
     }
 }

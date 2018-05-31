@@ -141,11 +141,13 @@ public final class NettyCodecAdapter {
                             callDecode(ctx, cumulation, out);
                         } finally {
                             if (cumulation != null) {
-                                if (!cumulation.isReadable()) {
+                                if (!cumulation.isReadable() && cumulation.refCnt() == 1) {
                                     cumulation.release();
                                     cumulation = null;
                                 } else {
-                                    cumulation.discardSomeReadBytes();
+                                    if(cumulation.refCnt() == 1){
+                                        cumulation.discardSomeReadBytes();
+                                    }
                                 }
                             }
                             data.release();

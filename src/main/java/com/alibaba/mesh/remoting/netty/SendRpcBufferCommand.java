@@ -2,23 +2,23 @@ package com.alibaba.mesh.remoting.netty;
 
 import com.alibaba.mesh.remoting.WriteQueue;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
 
 import javax.annotation.Nonnull;
 
 /**
- * @author yiji
+ * @author yiji.github@hotmail.com
  */
-public class SendRequestCommand implements WriteQueue.QueuedCommand {
+public class SendRpcBufferCommand implements WriteQueue.QueuedCommand {
 
-    Object msg;
+    ByteBuf buffer;
     ChannelPromise promise;
 
-    public SendRequestCommand(Object msg, @Nonnull ChannelPromise promise) {
-        this.msg = msg;
+    public SendRpcBufferCommand(ByteBuf buffer, @Nonnull ChannelPromise promise) {
+        this.buffer = buffer;
         this.promise = promise;
     }
 
@@ -39,6 +39,8 @@ public class SendRequestCommand implements WriteQueue.QueuedCommand {
 
     @Override
     public void run(Channel channel) {
-        channel.write(msg, promise);
+        channel.write(buffer, promise);
+        // ReferenceCountUtil.release(buffer);
     }
+
 }
