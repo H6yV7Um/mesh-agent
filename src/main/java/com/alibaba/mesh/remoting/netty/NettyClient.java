@@ -1,5 +1,6 @@
 package com.alibaba.mesh.remoting.netty;
 
+import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
@@ -27,9 +28,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class NettyClient extends AbstractClient {
 
-    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()), new DefaultThreadFactory("NettyClientWorker", true));
+    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
-//    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
+    //    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
 //    public static final EpollEventLoopGroup nioWorkerGroup = new EpollEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
     private static volatile boolean startedHttpServer = false;
     private Bootstrap bootstrap;
