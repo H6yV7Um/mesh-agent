@@ -16,24 +16,10 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author yiji.github@hotmail.com
  */
 
 public class RpcRequest {
-
-    @Benchmark
-    @BenchmarkMode(Mode.All)
-    @Measurement(iterations = 2, time = 60, timeUnit = TimeUnit.SECONDS)
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Threads(10)
-    public void measureHttpInvoke() throws InterruptedException {
-        try{
-            HttpInvoker.invoke();
-        }catch (Exception e){
-            throw new RuntimeException(e);
-        }
-    }
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -42,6 +28,19 @@ public class RpcRequest {
                 .build();
 
         new Runner(opt).run();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.All)
+    @Measurement(iterations = 2, time = 60, timeUnit = TimeUnit.SECONDS)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    @Threads(10)
+    public void measureHttpInvoke() throws InterruptedException {
+        try {
+            HttpInvoker.invoke();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

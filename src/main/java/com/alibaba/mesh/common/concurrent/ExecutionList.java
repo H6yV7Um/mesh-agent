@@ -27,21 +27,34 @@ import java.util.concurrent.TimeUnit;
 public final class ExecutionList {
     // Logger to log exceptions caught when running runnables.
     static final Logger logger = LoggerFactory.getLogger(ExecutionList.class.getName());
-
+    private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(1, 10, 60000L, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory("DubboFutureCallbackDefault", true));
     /**
      * The runnable, executor pairs to execute.  This acts as a stack threaded through the
      * {@link RunnableExecutorPair#next} field.
      */
     private RunnableExecutorPair runnables;
-
     private boolean executed;
-
-    private static final Executor DEFAULT_EXECUTOR = new ThreadPoolExecutor(1, 10, 60000L, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory("DubboFutureCallbackDefault", true));
 
     /**
      * Creates a new, empty {@link ExecutionList}.
      */
     public ExecutionList() {
+    }
+
+    /**
+     * Submits the given runnable to the given {@link Executor} catching and logging all
+     * {@linkplain RuntimeException runtime exceptions} thrown by the executor.
+     */
+    private static void executeListener(Runnable runnable, Executor executor) {
+        try {
+            executor.execute(runnable);
+        } catch (RuntimeException e) {
+            // Log it and keep going, bad runnable and/or executor.  Don't
+            // punish the other runnables if we're given a bad one.  We only
+            // catch RuntimeException because we want Errors to propagate up.
+            logger.error("RuntimeException while executing runnable "
+                    + runnable + " with executor " + executor, e);
+        }
     }
 
     /**
@@ -132,22 +145,6 @@ public final class ExecutionList {
         while (reversedList != null) {
             executeListener(reversedList.runnable, reversedList.executor);
             reversedList = reversedList.next;
-        }
-    }
-
-    /**
-     * Submits the given runnable to the given {@link Executor} catching and logging all
-     * {@linkplain RuntimeException runtime exceptions} thrown by the executor.
-     */
-    private static void executeListener(Runnable runnable, Executor executor) {
-        try {
-            executor.execute(runnable);
-        } catch (RuntimeException e) {
-            // Log it and keep going, bad runnable and/or executor.  Don't
-            // punish the other runnables if we're given a bad one.  We only
-            // catch RuntimeException because we want Errors to propagate up.
-            logger.error("RuntimeException while executing runnable "
-                    + runnable + " with executor " + executor, e);
         }
     }
 

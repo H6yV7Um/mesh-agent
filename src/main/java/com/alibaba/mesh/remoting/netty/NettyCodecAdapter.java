@@ -22,15 +22,12 @@ import java.util.List;
  */
 public final class NettyCodecAdapter {
 
+    static final int DEFAULT_INITIAL_CAPACITY = 1024 * 2;
     //    private final ChannelHandler encoder = new InternalEncoder();
     private final ChannelHandler encoder = new InternalEncoder0();
-
     private final ChannelHandler decoder = new InternalDecoder0();
-
     private final Codec4 codec;
-
     private final URL url;
-
     private final ChannelHandler handler;
 
     public NettyCodecAdapter(Codec4 codec, URL url, ChannelHandler handler) {
@@ -43,10 +40,6 @@ public final class NettyCodecAdapter {
         return encoder;
     }
 
-    public ChannelHandler getDecoder() {
-        return decoder;
-    }
-
 //    protected class InternalEncoder extends AbstractMessageToByteEncoder {
 //
 //        @Override
@@ -54,6 +47,10 @@ public final class NettyCodecAdapter {
 //            codec.encode(ctx, buffer, msg);
 //        }
 //    }
+
+    public ChannelHandler getDecoder() {
+        return decoder;
+    }
 
     protected class InternalEncoder0 extends ChannelOutboundHandlerAdapter {
         @Override
@@ -63,22 +60,39 @@ public final class NettyCodecAdapter {
             ctx.write(buffer, promise);
         }
     }
+//
+//    protected class InternalDecoder extends ByteToMessageDecoder {
+//
+//        @Override
+//        protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
+//
+//            Object msg;
+//            int saveReaderIndex;
+//
+//            do {
+//                saveReaderIndex = buffer.readerIndex();
+//                try {
+//                    msg = codec.decode(ctx, buffer);
+//                } catch (IOException e) {
+//                    throw e;
+//                }
+//                if (msg == Codec4.DecodeResult.NEED_MORE_INPUT) {
+//                    buffer.readerIndex(saveReaderIndex);
+//                    break;
+//                } else {
+//                    if (msg != null) {
+//                        out.add(msg);
+//                    }
+//                }
+//            } while (buffer.readableBytes() > 0);
+//        }
+//    }
 
     protected class InternalDecoder0 extends ChannelInboundHandlerAdapter {
 
         ByteBuf cumulation;
         private boolean singleDecode;
         private boolean decodeWasNull;
-
-        /**
-         * If set then only one message is decoded on each {@link #channelRead(ChannelHandlerContext, Object)}
-         * call. This may be useful if you need to do some protocol upgrade and want to make sure nothing is mixed up.
-         * <p>
-         * Default is {@code false} as this has performance impacts.
-         */
-        public void setSingleDecode(boolean singleDecode) {
-            this.singleDecode = singleDecode;
-        }
 
         /**
          * If {@code true} then only one message is decoded on each
@@ -88,6 +102,16 @@ public final class NettyCodecAdapter {
          */
         public boolean isSingleDecode() {
             return singleDecode;
+        }
+
+        /**
+         * If set then only one message is decoded on each {@link #channelRead(ChannelHandlerContext, Object)}
+         * call. This may be useful if you need to do some protocol upgrade and want to make sure nothing is mixed up.
+         * <p>
+         * Default is {@code false} as this has performance impacts.
+         */
+        public void setSingleDecode(boolean singleDecode) {
+            this.singleDecode = singleDecode;
         }
 
         /**
@@ -145,7 +169,7 @@ public final class NettyCodecAdapter {
                                     cumulation.release();
                                     cumulation = null;
                                 } else {
-                                    if(cumulation.refCnt() == 1){
+                                    if (cumulation.refCnt() == 1) {
                                         cumulation.discardSomeReadBytes();
                                     }
                                 }
@@ -311,33 +335,4 @@ public final class NettyCodecAdapter {
             decode(ctx, in, out);
         }
     }
-//
-//    protected class InternalDecoder extends ByteToMessageDecoder {
-//
-//        @Override
-//        protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
-//
-//            Object msg;
-//            int saveReaderIndex;
-//
-//            do {
-//                saveReaderIndex = buffer.readerIndex();
-//                try {
-//                    msg = codec.decode(ctx, buffer);
-//                } catch (IOException e) {
-//                    throw e;
-//                }
-//                if (msg == Codec4.DecodeResult.NEED_MORE_INPUT) {
-//                    buffer.readerIndex(saveReaderIndex);
-//                    break;
-//                } else {
-//                    if (msg != null) {
-//                        out.add(msg);
-//                    }
-//                }
-//            } while (buffer.readableBytes() > 0);
-//        }
-//    }
-
-    static final int DEFAULT_INITIAL_CAPACITY = 1024 * 2;
 }

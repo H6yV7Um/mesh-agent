@@ -8,10 +8,10 @@ import com.alibaba.mesh.common.serialize.Serialization;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Keys;
-import com.alibaba.mesh.remoting.buffer.ChannelBufferInputStream;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.support.header.DefaultFutureThreadLocal;
 import com.alibaba.mesh.remoting.transport.AbstractCodec;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 
@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author yiji
@@ -110,25 +109,7 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
         if (readable < tt) {
             return DecodeResult.NEED_MORE_INPUT;
         }
-
-//        ChannelBufferInputStream is = new ChannelBufferInputStream(buffer, len);
-
         return decodeBody(ctx, url, buffer, header);
-
-//        try {
-//            return decodeBody(ctx, url, buffer, header);
-//        } finally {
-//            if (is.available() > 0) {
-//                try {
-//                    if (logger.isWarnEnabled()) {
-//                        logger.warn("Skip input stream " + is.available());
-//                    }
-//                    is.skip(is.available());
-//                } catch (IOException e) {
-//                    logger.warn(e.getMessage(), e);
-//                }
-//            }
-//        }
     }
 
     protected Object decodeBody(ChannelHandlerContext ctx, URL url, ByteBuf buffer, ByteBuf header) throws IOException {
@@ -194,13 +175,11 @@ public abstract class DubboExchangeCodec extends AbstractCodec implements Codeab
     }
 
     protected Object getRequestData(long id) {
-        DefaultFuture future = DefaultFuture.getFuture(id);
-        if (future == null)
-            return null;
-        Request req = future.getRequest();
-        if (req == null)
-            return null;
-        return req.getData();
+        DefaultFuture request = DefaultFutureThreadLocal.getResponseFuture(id);
+        if (request != null) {
+            return request.getRequest().getData();
+        }
+        return null;
     }
 
     protected void encodeRequest(ChannelHandlerContext ctx, ByteBuf buffer, Request req) throws IOException {

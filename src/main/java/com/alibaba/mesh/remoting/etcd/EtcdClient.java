@@ -49,7 +49,8 @@ public interface EtcdClient {
 
     /**
      * register children listener for specified path.
-     * @param path the path to be watched when children is added, delete or update.
+     *
+     * @param path     the path to be watched when children is added, delete or update.
      * @param listener when children is changed , listener will be trigged.
      * @return direct children directory, contains zero element
      * list if children directory not exists.
@@ -58,7 +59,8 @@ public interface EtcdClient {
 
     /**
      * find watcher of the children listener for specified path.
-     * @param path the path to be watched when children is added, delete or update.
+     *
+     * @param path     the path to be watched when children is added, delete or update.
      * @param listener when children is changed , listener will be trigged.
      * @return watcher if find else null
      */
@@ -66,26 +68,30 @@ public interface EtcdClient {
 
     /**
      * unregister children lister for specified path.
-     * @param path the path to be unwatched .
+     *
+     * @param path     the path to be unwatched .
      * @param listener when children is changed , lister will be trigged.
      */
     void removeChildListener(String path, ChildListener listener);
 
     /**
      * support connection notify if connection state was changed.
+     *
      * @param listener if state changed, listener will be triggered.
      */
     void addStateListener(StateListener listener);
 
     /**
      * remove connection notify if connection state was changed.
+     *
      * @param listener remove already registered listener, if listener
-     * not exists nothing happened.
+     *                 not exists nothing happened.
      */
     void removeStateListener(StateListener listener);
 
     /**
      * test if current client is active.
+     *
      * @return true if connection is active else false.
      */
     boolean isConnected();
@@ -118,14 +124,14 @@ public interface EtcdClient {
      * @throws TimeoutException if the wait timed out
      * @return lease id from etcd
      */
-     public long createLease(long ttl, long timeout, TimeUnit unit)
-             throws InterruptedException, ExecutionException, TimeoutException;
+    public long createLease(long ttl, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
-     *  revoke specified lease, any associated path will removed automatically.
+     * revoke specified lease, any associated path will removed automatically.
      *
      * @param lease to be removed lease
      */
-     void revokeLease(long lease);
+    void revokeLease(long lease);
 
 }

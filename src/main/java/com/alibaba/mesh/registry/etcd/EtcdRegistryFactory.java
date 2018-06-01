@@ -6,7 +6,6 @@ import com.alibaba.mesh.registry.support.AbstractRegistryFactory;
 import com.alibaba.mesh.remoting.etcd.EtcdTransporter;
 
 /**
- *
  * Etcd3RegistryFactory
  *
  * @author yiji.github@hotmail.com

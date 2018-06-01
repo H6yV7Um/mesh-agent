@@ -15,11 +15,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class WriteQueue {
 
-    Logger logger = LoggerFactory.getLogger(WriteQueue.class);
-
     // Dequeue in chunks, so we don't have to acquire the queue's log too often.
     static final int DEQUE_CHUNK_SIZE = 128;
-
+    public final Queue<QueuedCommand> queue;
+    private final Channel channel;
+    private final AtomicBoolean scheduled = new AtomicBoolean();
     /**
      * {@link Runnable} used to schedule work onto the tail of the event loop.
      */
@@ -29,10 +29,7 @@ public class WriteQueue {
             flush();
         }
     };
-
-    private final Channel channel;
-    public final Queue<QueuedCommand> queue;
-    private final AtomicBoolean scheduled = new AtomicBoolean();
+    Logger logger = LoggerFactory.getLogger(WriteQueue.class);
 
     public WriteQueue(Channel channel) {
         this.channel = channel;
@@ -125,6 +122,23 @@ public class WriteQueue {
         }
     }
 
+    /**
+     * Simple wrapper type around a command and its optional completion listener.
+     */
+    public interface QueuedCommand {
+        /**
+         * Returns the promise beeing notified of the success/failure of the write.
+         */
+        ChannelPromise promise();
+
+        /**
+         * Sets the promise.
+         */
+        void promise(ChannelPromise promise);
+
+        void run(Channel channel);
+    }
+
     public static class RunnableCommand implements QueuedCommand {
         private final Runnable runnable;
 
@@ -166,22 +180,5 @@ public class WriteQueue {
         public final void run(Channel channel) {
             channel.write(this, promise);
         }
-    }
-
-    /**
-     * Simple wrapper type around a command and its optional completion listener.
-     */
-    public interface QueuedCommand {
-        /**
-         * Returns the promise beeing notified of the success/failure of the write.
-         */
-        ChannelPromise promise();
-
-        /**
-         * Sets the promise.
-         */
-        void promise(ChannelPromise promise);
-
-        void run(Channel channel);
     }
 }

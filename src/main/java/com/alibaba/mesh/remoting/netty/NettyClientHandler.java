@@ -11,7 +11,6 @@ import io.netty.channel.ChannelPromise;
 /**
  * NettyClientHandler
  */
-@io.netty.channel.ChannelHandler.Sharable
 public class NettyClientHandler extends ChannelDuplexHandler {
 
     private final URL url;

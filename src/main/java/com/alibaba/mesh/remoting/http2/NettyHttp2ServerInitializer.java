@@ -27,12 +27,10 @@ import java.security.cert.CertificateException;
  */
 public class NettyHttp2ServerInitializer extends ChannelInitializer<NioSocketChannel> {
 
+    private static final Logger logger = LoggerFactory.getLogger(NettyHttp2ServerInitializer.class);
     private SslContext sslCtx;
     private int maxHttpContentLength;
     private URL url;
-
-    private static final Logger logger = LoggerFactory.getLogger(NettyHttp2ServerInitializer.class);
-
     private final HttpServerUpgradeHandler.UpgradeCodecFactory upgradeCodecFactory = new HttpServerUpgradeHandler.UpgradeCodecFactory() {
         @Override
         public HttpServerUpgradeHandler.UpgradeCodec newUpgradeCodec(CharSequence protocol) {

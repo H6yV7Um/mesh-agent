@@ -374,7 +374,7 @@ public class Constants {
 
     public static final String CHANNEL_SEND_READONLYEVENT_KEY = "channel.readonly.send";
 
-    public static final String CHANNEL_ATTRIBUTE_URL_KEY      = "channel.url";
+    public static final String CHANNEL_ATTRIBUTE_URL_KEY = "channel.url";
 
     public static final String COUNT_PROTOCOL = "count";
 
@@ -630,7 +630,7 @@ public class Constants {
     public static final String QOS_PORT = "qos.port";
 
     public static final String ACCEPT_FOREIGN_IP = "qos.accept.foreign.ip";
-    
+
     public static final String HESSIAN2_REQUEST_KEY = "hessian2.request";
 
     public static final boolean DEFAULT_HESSIAN2_REQUEST = false;
@@ -648,7 +648,7 @@ public class Constants {
 
     public static final String HTTP_SUBFIX_KEY = "://";
 
-    public static final String HTTP_KEY        = "http://";
+    public static final String HTTP_KEY = "http://";
 
     public static final String MAX_HTTP_CONTENT_BYTES_KEY = "max.http.content.bytes";
 

@@ -4,7 +4,6 @@ import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.Codec4;
 import com.alibaba.mesh.remoting.CodecOutputList;
-import com.alibaba.mesh.remoting.netty.NettyCodecAdapter.InternalDecoder0;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -15,7 +14,6 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.DecoderException;
 import io.netty.util.internal.StringUtil;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -46,16 +44,6 @@ final class NettyCodecBytesAdapter {
         private boolean decodeWasNull;
 
         /**
-         * If set then only one message is decoded on each {@link #channelRead(ChannelHandlerContext, Object)}
-         * call. This may be useful if you need to do some protocol upgrade and want to make sure nothing is mixed up.
-         * <p>
-         * Default is {@code false} as this has performance impacts.
-         */
-        public void setSingleDecode(boolean singleDecode) {
-            this.singleDecode = singleDecode;
-        }
-
-        /**
          * If {@code true} then only one message is decoded on each
          * {@link #channelRead(ChannelHandlerContext, Object)} call.
          * <p>
@@ -63,6 +51,16 @@ final class NettyCodecBytesAdapter {
          */
         public boolean isSingleDecode() {
             return singleDecode;
+        }
+
+        /**
+         * If set then only one message is decoded on each {@link #channelRead(ChannelHandlerContext, Object)}
+         * call. This may be useful if you need to do some protocol upgrade and want to make sure nothing is mixed up.
+         * <p>
+         * Default is {@code false} as this has performance impacts.
+         */
+        public void setSingleDecode(boolean singleDecode) {
+            this.singleDecode = singleDecode;
         }
 
         /**
@@ -120,8 +118,8 @@ final class NettyCodecBytesAdapter {
                                     cumulation.release();
                                     cumulation = null;
                                 } else {
-                                    if(cumulation.refCnt() == 1){
-                                         cumulation.discardSomeReadBytes();
+                                    if (cumulation.refCnt() == 1) {
+                                        cumulation.discardSomeReadBytes();
                                     }
                                 }
                             }

@@ -6,7 +6,6 @@ import com.alibaba.mesh.common.extension.Adaptive;
 import com.alibaba.mesh.common.extension.SPI;
 
 /**
- *
  * Provides client connecting to etcd.
  *
  * @author yiji.github@hotmail.com

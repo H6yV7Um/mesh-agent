@@ -180,36 +180,6 @@ public class PojoUtils {
         return realize0(pojo, type, genericType, new IdentityHashMap<Object, Object>());
     }
 
-    private static class PojoInvocationHandler implements InvocationHandler {
-
-        private Map<Object, Object> map;
-
-        public PojoInvocationHandler(Map<Object, Object> map) {
-            this.map = map;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getDeclaringClass() == Object.class) {
-                return method.invoke(map, args);
-            }
-            String methodName = method.getName();
-            Object value = null;
-            if (methodName.length() > 3 && methodName.startsWith("get")) {
-                value = map.get(methodName.substring(3, 4).toLowerCase() + methodName.substring(4));
-            } else if (methodName.length() > 2 && methodName.startsWith("is")) {
-                value = map.get(methodName.substring(2, 3).toLowerCase() + methodName.substring(3));
-            } else {
-                value = map.get(methodName.substring(0, 1).toLowerCase() + methodName.substring(1));
-            }
-            if (value instanceof Map<?, ?> && !Map.class.isAssignableFrom(method.getReturnType())) {
-                value = realize0((Map<String, Object>) value, method.getReturnType(), null, new IdentityHashMap<Object, Object>());
-            }
-            return value;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private static Collection<Object> createCollection(Class<?> type, int len) {
         if (type.isAssignableFrom(ArrayList.class)) {
@@ -572,6 +542,36 @@ public class PojoUtils {
         return !ReflectUtils.isPrimitives(cls)
                 && !Collection.class.isAssignableFrom(cls)
                 && !Map.class.isAssignableFrom(cls);
+    }
+
+    private static class PojoInvocationHandler implements InvocationHandler {
+
+        private Map<Object, Object> map;
+
+        public PojoInvocationHandler(Map<Object, Object> map) {
+            this.map = map;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (method.getDeclaringClass() == Object.class) {
+                return method.invoke(map, args);
+            }
+            String methodName = method.getName();
+            Object value = null;
+            if (methodName.length() > 3 && methodName.startsWith("get")) {
+                value = map.get(methodName.substring(3, 4).toLowerCase() + methodName.substring(4));
+            } else if (methodName.length() > 2 && methodName.startsWith("is")) {
+                value = map.get(methodName.substring(2, 3).toLowerCase() + methodName.substring(3));
+            } else {
+                value = map.get(methodName.substring(0, 1).toLowerCase() + methodName.substring(1));
+            }
+            if (value instanceof Map<?, ?> && !Map.class.isAssignableFrom(method.getReturnType())) {
+                value = realize0((Map<String, Object>) value, method.getReturnType(), null, new IdentityHashMap<Object, Object>());
+            }
+            return value;
+        }
     }
 
 }

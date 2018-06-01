@@ -11,11 +11,10 @@ import java.nio.charset.Charset;
 
 public class FastJsonObjectInput implements ObjectInput {
 
-    private final ByteBuf reader;
-
     public static final Charset ascii = Charset.forName("US-ASCII");
     public static final byte lineSeparator = System.getProperty("line.separator").getBytes(ascii)[0];
     public static final byte doubleQuotation = "\"".getBytes(ascii)[0];
+    private final ByteBuf reader;
 
     public FastJsonObjectInput(ByteBuf reader) {
         this.reader = reader;

@@ -10,6 +10,7 @@ import com.alibaba.mesh.remoting.CodecOutputList;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.WriteQueue;
+import com.alibaba.mesh.remoting.exchange.InternalLongObjectHashMap;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
 import com.alibaba.mesh.rpc.protocol.mesh.ExchangeCodec;
@@ -29,39 +30,25 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-
 /**
  * @author yiji
  */
 public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(NettyServerDeliveryHandler.class);
     private final URL url;
     private final ChannelHandler handler;
+    public InternalLongObjectHashMap<Request> requestIdMap = new InternalLongObjectHashMap<>(1048576);
+    Bootstrap bootstrap;
+    int port;
+    String host;
     private int timeout;
-
     private Channel endpointChannel;
     private ChannelHandlerContext serverCtx;
-
     private ChannelFuture future;
-
     private Codeable codeable;
-
-    public HashMap<Long, Request> requestIdMap = new HashMap<>(1048576);
-
     private WriteQueue writeQueue;
-
     private WriteQueue writeToEndpoint;
-
-    private Thread monitor;
-
-    private static final Logger logger = LoggerFactory.getLogger(NettyServerDeliveryHandler.class);
-
-    Bootstrap bootstrap;
-
-    int port;
-
-    String host;
 
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
         this.url = url;
@@ -69,6 +56,11 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         this.handler = handler;
         this.codeable = getChannelCodec(url);
         if (timeout < 3000) timeout = 3000;
+    }
+
+    protected static Codeable getChannelCodec(URL url) {
+        String codecName = url.getParameter(Constants.ENDPOINT_NAME_KEY, "dubbo");
+        return ExtensionLoader.getExtensionLoader(Codeable.class).getExtension(codecName);
     }
 
     @Override
@@ -158,11 +150,6 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         handler.exceptionCaught(ctx, cause);
-    }
-
-    protected static Codeable getChannelCodec(URL url) {
-        String codecName = url.getParameter(Constants.ENDPOINT_NAME_KEY, "dubbo");
-        return ExtensionLoader.getExtensionLoader(Codeable.class).getExtension(codecName);
     }
 
     class RemoteChannelInitializer extends ChannelInitializer {

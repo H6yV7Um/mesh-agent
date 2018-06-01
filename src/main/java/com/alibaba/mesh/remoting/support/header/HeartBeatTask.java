@@ -1,10 +1,5 @@
 package com.alibaba.mesh.remoting.support.header;
 
-import com.alibaba.mesh.remoting.Client;
-import com.alibaba.mesh.remoting.Keys;
-import com.alibaba.mesh.remoting.exchange.Request;
-
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -2,6 +2,7 @@ package com.alibaba.mesh.rpc.service;
 
 /**
  * Echo service.
+ *
  * @export
  */
 public interface EchoService {

@@ -6,7 +6,6 @@ import com.alibaba.mesh.config.annotation.Parameter;
  * EndPointConfig
  *
  * @author yiji.github@hotmail.com
- *
  */
 public class EndPointConfig extends AbstractConfig {
 

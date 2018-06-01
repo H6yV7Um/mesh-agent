@@ -11,8 +11,6 @@ import com.alibaba.mesh.remoting.transport.DecodeHandlerSupport;
 
 /**
  * DefaultMessenger
- *
- *
  */
 public class HeaderExchanger implements Exchanger {
 
@@ -20,7 +18,7 @@ public class HeaderExchanger implements Exchanger {
 
     @Override
     public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
-         return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))), true);
+        return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandlerSupport(new HeaderExchangeHandler(handler))), true);
     }
 
     @Override

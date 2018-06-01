@@ -31,9 +31,9 @@ public class NettyHttp2Server {
 
     Channel ch;
 
-    public void start(){
+    public void start() {
         String port = System.getProperty(Constants.BIND_PORT_KEY, "20000");
-        if(StringUtils.isNotEmpty(port)){
+        if (StringUtils.isNotEmpty(port)) {
             serverUrl.setPort(Integer.parseInt(port));
         }
         ServerBootstrap b = new ServerBootstrap();
@@ -54,7 +54,7 @@ public class NettyHttp2Server {
         }
     }
 
-    public void stop(){
+    public void stop() {
         NettyClient.nioWorkerGroup.shutdownGracefully();
     }
 }

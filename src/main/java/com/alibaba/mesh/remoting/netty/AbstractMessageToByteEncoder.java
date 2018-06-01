@@ -13,6 +13,8 @@ import io.netty.util.ReferenceCountUtil;
  */
 public abstract class AbstractMessageToByteEncoder<I> extends MessageToByteEncoder<I> {
 
+    static final int DEFAULT_INITIAL_CAPACITY = 1024 * 2;
+
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf buf = null;
@@ -56,6 +58,4 @@ public abstract class AbstractMessageToByteEncoder<I> extends MessageToByteEncod
             return ctx.alloc().heapBuffer(DEFAULT_INITIAL_CAPACITY);
         }
     }
-
-    static final int DEFAULT_INITIAL_CAPACITY = 1024 * 2;
 }

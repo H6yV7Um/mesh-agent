@@ -11,43 +11,89 @@ import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * DefaultFuture.
+ * DefaultFuture0.
  */
-public class DefaultFuture implements ResponseFuture {
+public class DefaultFuture0 implements ResponseFuture {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultFuture.class);
+
+    private static final Map<Long, Channel> CHANNELS = new ConcurrentHashMap<Long, Channel>();
+
+    private static final Map<Long, DefaultFuture0> FUTURES = new ConcurrentHashMap<Long, DefaultFuture0>();
+
+    static {
+        Thread th = new Thread(new RemotingInvocationTimeoutScan(), "DubboResponseTimeoutScanTimer");
+        th.setDaemon(true);
+        th.start();
+    }
 
     // invoke id.
     private final long id;
     private final Channel channel;
     private final Request request;
     private final int timeout;
-
+    private final Lock lock = new ReentrantLock();
+    private final Condition done = lock.newCondition();
     private final long start = System.currentTimeMillis();
-    boolean shouldBeClean;
-    private long sent;
-    private Response response;
-    private ResponseCallback callback;
+    private volatile long sent;
+    private volatile Response response;
+    private volatile ResponseCallback callback;
 
-    public DefaultFuture(Channel channel, Request request, int timeout) {
+    public DefaultFuture0(Channel channel, Request request, int timeout) {
         this.channel = channel;
         this.request = request;
         this.id = request.getId();
         this.timeout = timeout > 0 ? timeout : channel.attr(Keys.URL_KEY).get().getPositiveParameter(Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
-
-        request.setGuard(this);
+        // put into waiting map.
+        FUTURES.put(id, this);
+        CHANNELS.put(id, channel);
     }
 
-    public void sent(Channel channel, Request request) {
-        sent = System.currentTimeMillis();
+    public static DefaultFuture0 getFuture(long id) {
+        return FUTURES.get(id);
+    }
+
+    public static boolean hasFuture(Channel channel) {
+        return CHANNELS.containsValue(channel);
+    }
+
+    public static void sent(Channel channel, Request request) {
+        DefaultFuture0 future = FUTURES.get(request.getId());
+        if (future != null) {
+            future.doSent();
+        }
+    }
+
+    public static void received(Channel channel, Response response) {
+        try {
+            DefaultFuture0 future = FUTURES.remove(response.getId());
+            if (future != null) {
+                future.doReceived(response);
+            } else {
+                logger.warn("The timeout response finally returned at "
+                        + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date()))
+                        + ", response " + response
+                        + (channel == null ? "" : ", channel: " + channel.localAddress()
+                        + " -> " + channel.remoteAddress()));
+            }
+        } finally {
+            CHANNELS.remove(response.getId());
+        }
     }
 
     public void cancel() {
         Response errorResult = new Response(id);
         errorResult.setErrorMessage("request future has been canceled.");
         response = errorResult;
+        FUTURES.remove(id);
+        CHANNELS.remove(id);
     }
 
     @Override
@@ -61,10 +107,15 @@ public class DefaultFuture implements ResponseFuture {
             invokeCallback(callback);
         } else {
             boolean isdone = false;
-            if (!isDone()) {
-                this.callback = callback;
-            } else {
-                isdone = true;
+            lock.lock();
+            try {
+                if (!isDone()) {
+                    this.callback = callback;
+                } else {
+                    isdone = true;
+                }
+            } finally {
+                lock.unlock();
             }
             if (isdone) {
                 invokeCallback(callback);
@@ -120,15 +171,15 @@ public class DefaultFuture implements ResponseFuture {
         throw new RemotingException(channel, res.getErrorMessage());
     }
 
-    public long getId() {
+    private long getId() {
         return id;
     }
 
-    public Channel getChannel() {
+    private Channel getChannel() {
         return channel;
     }
 
-    public boolean isSent() {
+    private boolean isSent() {
         return sent > 0;
     }
 
@@ -136,11 +187,11 @@ public class DefaultFuture implements ResponseFuture {
         return request;
     }
 
-    public int getTimeout() {
+    private int getTimeout() {
         return timeout;
     }
 
-    public long getStartTimestamp() {
+    private long getStartTimestamp() {
         return start;
     }
 
@@ -148,15 +199,22 @@ public class DefaultFuture implements ResponseFuture {
         sent = System.currentTimeMillis();
     }
 
-    public void doReceived(Response res) {
-        response = res;
+    private void doReceived(Response res) {
+        lock.lock();
+        try {
+            response = res;
+            if (done != null) {
+                done.signal();
+            }
+        } finally {
+            lock.unlock();
+        }
         if (callback != null) {
             invokeCallback(callback);
         }
-        shouldBeClean = true;
     }
 
-    public String getTimeoutMessage(boolean scan) {
+    private String getTimeoutMessage(boolean scan) {
         long nowTimestamp = System.currentTimeMillis();
         return (sent > 0 ? "Waiting server-side response timeout" : "Sending request timeout in client-side")
                 + (scan ? " by scan timer" : "") + ". start time: "
@@ -167,6 +225,37 @@ public class DefaultFuture implements ResponseFuture {
                 : " elapsed: " + (nowTimestamp - start)) + " ms, timeout: "
                 + timeout + " ms, request: " + request + ", channel: " + channel.localAddress()
                 + " -> " + channel.remoteAddress();
+    }
+
+    private static class RemotingInvocationTimeoutScan implements Runnable {
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    for (DefaultFuture0 future : FUTURES.values()) {
+                        if (future == null || future.isDone()) {
+                            continue;
+                        }
+                        if (System.currentTimeMillis() - future.getStartTimestamp() > future.getTimeout()) {
+                            // create exception response.
+                            Response timeoutResponse = new Response(future.getId());
+                            // set timeout status.
+                            timeoutResponse.setStatus(future.isSent() ? Response.SERVER_TIMEOUT : Response.CLIENT_TIMEOUT);
+                            String message = future.getTimeoutMessage(true);
+                            timeoutResponse.setErrorMessage(message);
+                            // handle response.
+//                            DefaultFuture.received(future.getChannel(), timeoutResponse);
+                            logger.debug(message);
+                            System.out.println("FUTURES size: " + FUTURES.size());
+                        }
+                    }
+                    Thread.sleep(30);
+                } catch (Throwable e) {
+                    logger.error("Exception when scan the timeout invocation of remoting.", e);
+                }
+            }
+        }
     }
 
 }

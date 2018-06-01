@@ -39,17 +39,15 @@ public class EtcdRegistry extends FailbackRegistry {
 
     private final static String DEFAULT_ROOT = "mesh";
 
-    private final String        root;
+    private final String root;
 
     private final Set<String> anyServices = new ConcurrentHashSet<String>();
 
     private final ConcurrentMap<URL, ConcurrentMap<NotifyListener, ChildListener>> etcdListeners = new ConcurrentHashMap<URL, ConcurrentMap<NotifyListener, ChildListener>>();
 
     private final ConcurrentMap<String, Long> ephemeralPathCache = new ConcurrentHashMap<>();
-
-    private long  expirePeriod;
-
     private final EtcdClient etcdClient;
+    private long expirePeriod;
 
     public EtcdRegistry(URL url, EtcdTransporter etcdTransporter) {
         super(url);
@@ -75,11 +73,23 @@ public class EtcdRegistry extends FailbackRegistry {
         });
     }
 
+    protected static String appendDefaultPort(String address) {
+        if (address != null && address.length() > 0) {
+            int i = address.indexOf(':');
+            if (i < 0) {
+                return address + ":" + DEFAULT_ETCD_PORT;
+            } else if (Integer.parseInt(address.substring(i + 1)) == 0) {
+                return address.substring(0, i + 1) + DEFAULT_ETCD_PORT;
+            }
+        }
+        return address;
+    }
+
     @Override
     protected void doRegister(URL url) {
         try {
             String path = toUrlPath(url);
-            if(url.getParameter(Constants.DYNAMIC_KEY, true)) {
+            if (url.getParameter(Constants.DYNAMIC_KEY, true)) {
                 ephemeralPathCache.put(path, etcdClient.createEphemeral(path));
                 return;
             }
@@ -87,8 +97,8 @@ public class EtcdRegistry extends FailbackRegistry {
         } catch (Throwable e) {
             throw new RpcException("Failed to register " + url + " to etcd " + getUrl()
                     + ", cause: " + (OptionUtil.isProtocolError(e)
-                                        ? "etcd3 registy maybe not supported yet or etcd3 registry not available."
-                                        : e.getMessage()), e);
+                    ? "etcd3 registy maybe not supported yet or etcd3 registry not available."
+                    : e.getMessage()), e);
         }
     }
 
@@ -96,9 +106,9 @@ public class EtcdRegistry extends FailbackRegistry {
     protected void doUnregister(URL url) {
         try {
             String path = toUrlPath(url);
-            if(url.getParameter(Constants.DYNAMIC_KEY, true)) {
+            if (url.getParameter(Constants.DYNAMIC_KEY, true)) {
                 Long lease = ephemeralPathCache.remove(path);
-                if(lease != null) {
+                if (lease != null) {
                     etcdClient.revokeLease(lease);
                     return;
                 }
@@ -120,46 +130,46 @@ public class EtcdRegistry extends FailbackRegistry {
                  *  we find current or create container for url, put or get only once.
                  */
                 ConcurrentMap<NotifyListener, ChildListener> listeners =
-                    Optional.ofNullable(etcdListeners.get(url))
-                            .orElseGet(() -> {
-                                ConcurrentMap<NotifyListener, ChildListener> container, prev;
-                                prev = etcdListeners.putIfAbsent(url, container = new ConcurrentHashMap<>());
-                                return prev != null ? prev : container;
-                            });
+                        Optional.ofNullable(etcdListeners.get(url))
+                                .orElseGet(() -> {
+                                    ConcurrentMap<NotifyListener, ChildListener> container, prev;
+                                    prev = etcdListeners.putIfAbsent(url, container = new ConcurrentHashMap<>());
+                                    return prev != null ? prev : container;
+                                });
 
                 /**
                  *  if we have not interface watcher listener,
                  *  we find current or create listener for current root, put or get only once.
                  */
                 ChildListener interfaceListener =
-                    Optional.ofNullable(listeners.get(listener))
-                        .orElseGet(() -> {
-                            ChildListener childListener, prev;
-                            prev = listeners.putIfAbsent(listener, childListener = new ChildListener() {
-                                public void childChanged(String parentPath, List<String> currentChildren) {
-                                    /**
-                                     *  because etcd3 not support direct children watch events,
-                                     *  we should filter not interface events. if we watch /mesh
-                                     *  and /mesh/interface, when we put key-value pair {/mesh/interface/hello hello},
-                                     *  we will got events in watching path /mesh.
-                                     */
-                                    List<String> children = filterChildren(currentChildren, url, parentPath);
-                                    for (String child : children) {
-                                        child = URL.decode(child);
-                                        if (!anyServices.contains(child)) {
-                                            anyServices.add(child);
+                        Optional.ofNullable(listeners.get(listener))
+                                .orElseGet(() -> {
+                                    ChildListener childListener, prev;
+                                    prev = listeners.putIfAbsent(listener, childListener = new ChildListener() {
+                                        public void childChanged(String parentPath, List<String> currentChildren) {
                                             /**
-                                             *  if new interface event arrived, we watching direct children,
-                                             *  eg: /mesh/interface, /mesh/interface and so on.
+                                             *  because etcd3 not support direct children watch events,
+                                             *  we should filter not interface events. if we watch /mesh
+                                             *  and /mesh/interface, when we put key-value pair {/mesh/interface/hello hello},
+                                             *  we will got events in watching path /mesh.
                                              */
-                                            subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child,
-                                                    Constants.CHECK_KEY, String.valueOf(false)), listener);
+                                            List<String> children = filterChildren(currentChildren, url, parentPath);
+                                            for (String child : children) {
+                                                child = URL.decode(child);
+                                                if (!anyServices.contains(child)) {
+                                                    anyServices.add(child);
+                                                    /**
+                                                     *  if new interface event arrived, we watching direct children,
+                                                     *  eg: /mesh/interface, /mesh/interface and so on.
+                                                     */
+                                                    subscribe(url.setPath(child).addParameters(Constants.INTERFACE_KEY, child,
+                                                            Constants.CHECK_KEY, String.valueOf(false)), listener);
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                            });
-                            return prev != null ? prev : childListener;
-                        });
+                                    });
+                                    return prev != null ? prev : childListener;
+                                });
 
                 etcdClient.create(root);
                 /**
@@ -183,31 +193,31 @@ public class EtcdRegistry extends FailbackRegistry {
                      *  we find current or create container for url, put or get only once.
                      */
                     ConcurrentMap<NotifyListener, ChildListener> listeners =
-                        Optional.ofNullable(etcdListeners.get(url))
-                            .orElseGet(() -> {
-                                ConcurrentMap<NotifyListener, ChildListener> container, prev;
-                                prev = etcdListeners.putIfAbsent(url,
-                                        container = new ConcurrentHashMap<NotifyListener, ChildListener>());
-                                return prev != null ? prev : container;
-                            });
+                            Optional.ofNullable(etcdListeners.get(url))
+                                    .orElseGet(() -> {
+                                        ConcurrentMap<NotifyListener, ChildListener> container, prev;
+                                        prev = etcdListeners.putIfAbsent(url,
+                                                container = new ConcurrentHashMap<NotifyListener, ChildListener>());
+                                        return prev != null ? prev : container;
+                                    });
 
                     /**
                      *  if we have no category watcher listener,
                      *  we find current or create listener for current category, put or get only once.
                      */
                     ChildListener childListener =
-                        Optional.ofNullable(listeners.get(listener))
-                            .orElseGet(() -> {
-                                ChildListener watchListener, prev;
-                                prev =  listeners.putIfAbsent(listener, watchListener = new ChildListener() {
-                                    public void childChanged(String parentPath, List<String> currentChildren) {
-                                        EtcdRegistry.this.notify(url, listener,
-                                                toUrlsWithEmpty(url, parentPath,
-                                                        filterChildren(currentChildren, url, parentPath)));
-                                    }
-                                });
-                                return prev != null ? prev : watchListener;
-                            });
+                            Optional.ofNullable(listeners.get(listener))
+                                    .orElseGet(() -> {
+                                        ChildListener watchListener, prev;
+                                        prev = listeners.putIfAbsent(listener, watchListener = new ChildListener() {
+                                            public void childChanged(String parentPath, List<String> currentChildren) {
+                                                EtcdRegistry.this.notify(url, listener,
+                                                        toUrlsWithEmpty(url, parentPath,
+                                                                filterChildren(currentChildren, url, parentPath)));
+                                            }
+                                        });
+                                        return prev != null ? prev : watchListener;
+                                    });
 
                     etcdClient.create(path);
                     /**
@@ -225,8 +235,8 @@ public class EtcdRegistry extends FailbackRegistry {
         } catch (Throwable e) {
             throw new RpcException("Failed to subscribe " + url + " to etcd " + getUrl()
                     + ", cause: " + (OptionUtil.isProtocolError(e)
-                                        ? "etcd3 registy maybe not supported yet or etcd3 registry not available."
-                                        : e.getMessage()), e);
+                    ? "etcd3 registy maybe not supported yet or etcd3 registry not available."
+                    : e.getMessage()), e);
         }
     }
 
@@ -237,7 +247,7 @@ public class EtcdRegistry extends FailbackRegistry {
             ChildListener etcdListener = listeners.get(listener);
             if (etcdListener != null) {
                 // maybe url has many subscribe path
-                for(String path : toUnsubscribedPath(url)){
+                for (String path : toUnsubscribedPath(url)) {
                     etcdClient.removeChildListener(path, etcdListener);
                 }
             }
@@ -261,33 +271,21 @@ public class EtcdRegistry extends FailbackRegistry {
     }
 
     protected List<String> filterChildren(List<String> currentChilds, URL url, String watchPath) {
-        if(currentChilds == null) return Collections.emptyList();
-        if(currentChilds.size() <= 0) return currentChilds;
+        if (currentChilds == null) return Collections.emptyList();
+        if (currentChilds.size() <= 0) return currentChilds;
         final int len = watchPath.length();
         return currentChilds.stream().parallel()
-                .filter( child -> {
+                .filter(child -> {
                     int index = len, count = 0;
-                    if( child.length() > len){
-                        for(;(index = child.indexOf(Constants.PATH_SEPARATOR, index)) != -1; ++index) {
+                    if (child.length() > len) {
+                        for (; (index = child.indexOf(Constants.PATH_SEPARATOR, index)) != -1; ++index) {
                             if (count++ > 1) break;
                         }
                     }
                     return count == 1;
                 })
-                .map( child -> child.substring(len + 1) )
+                .map(child -> child.substring(len + 1))
                 .collect(toList());
-    }
-
-    protected static String appendDefaultPort(String address) {
-        if (address != null && address.length() > 0) {
-            int i = address.indexOf(':');
-            if (i < 0) {
-                return address + ":" + DEFAULT_ETCD_PORT;
-            } else if (Integer.parseInt(address.substring(i + 1)) == 0) {
-                return address.substring(0, i + 1) + DEFAULT_ETCD_PORT;
-            }
-        }
-        return address;
     }
 
     protected String toRootDir() {
@@ -332,16 +330,16 @@ public class EtcdRegistry extends FailbackRegistry {
         return toCategoryPath(url) + Constants.PATH_SEPARATOR + URL.encode(url.toFullString());
     }
 
-    protected List<String> toUnsubscribedPath(URL url){
+    protected List<String> toUnsubscribedPath(URL url) {
         List<String> categories = new ArrayList<>();
-        if(Constants.ANY_VALUE.equals(url.getServiceInterface())) {
+        if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
             String group = url.getParameter(Constants.GROUP_KEY, DEFAULT_ROOT);
             if (!group.startsWith(Constants.PATH_SEPARATOR)) {
                 group = Constants.PATH_SEPARATOR + group;
             }
             categories.add(group);
             return categories;
-        }else{
+        } else {
             for (String path : toCategoriesPath(url)) {
                 categories.add(path);
             }

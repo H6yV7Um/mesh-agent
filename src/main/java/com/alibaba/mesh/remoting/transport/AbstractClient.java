@@ -188,7 +188,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
         Channel channel = getChannel();
         if (channel == null)
             return getUrl().toInetSocketAddress();
-        return (InetSocketAddress)channel.remoteAddress();
+        return (InetSocketAddress) channel.remoteAddress();
     }
 
     @Override
@@ -196,7 +196,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
         Channel channel = getChannel();
         if (channel == null)
             return InetSocketAddress.createUnresolved(NetUtils.getLocalHost(), 0);
-        return (InetSocketAddress)channel.localAddress();
+        return (InetSocketAddress) channel.localAddress();
     }
 
     @Override
@@ -300,7 +300,7 @@ public abstract class AbstractClient extends AbstractEndpoint implements Client 
     }
 
     @Override
-    public void write(Object message) throws RemotingException{
+    public void write(Object message) throws RemotingException {
         if (send_reconnect && !isConnected()) {
             connect();
         }

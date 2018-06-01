@@ -7,7 +7,6 @@ import com.alibaba.mesh.rpc.cluster.Directory;
 
 /**
  * {@link FailoverClusterInvoker}
- *
  */
 public class FailoverCluster implements Cluster {
 

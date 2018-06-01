@@ -5,8 +5,6 @@ import com.alibaba.mesh.remoting.RemotingException;
 
 /**
  * ExchangeClient. (API/SPI, Prototype, ThreadSafe)
- *
- *
  */
 public interface ExchangeClient extends Client {
 

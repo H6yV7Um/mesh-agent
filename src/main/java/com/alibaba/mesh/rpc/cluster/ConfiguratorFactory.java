@@ -6,7 +6,6 @@ import com.alibaba.mesh.common.extension.SPI;
 
 /**
  * ConfiguratorFactory. (SPI, Singleton, ThreadSafe)
- *
  */
 @SPI
 public interface ConfiguratorFactory {

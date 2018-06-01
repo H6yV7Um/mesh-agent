@@ -19,6 +19,14 @@ public class ListenableFutureTask<V> extends FutureTask<V>
     // The execution list to hold our listeners.
     private final ExecutionList executionList = new ExecutionList();
 
+    ListenableFutureTask(Callable<V> callable) {
+        super(callable);
+    }
+
+    ListenableFutureTask(Runnable runnable, V result) {
+        super(runnable, result);
+    }
+
     /**
      * Creates a {@code ListenableFutureTask} that will upon running, execute the
      * given {@code Callable}.
@@ -45,14 +53,6 @@ public class ListenableFutureTask<V> extends FutureTask<V>
     public static <V> ListenableFutureTask<V> create(
             Runnable runnable, V result) {
         return new ListenableFutureTask<V>(runnable, result);
-    }
-
-    ListenableFutureTask(Callable<V> callable) {
-        super(callable);
-    }
-
-    ListenableFutureTask(Runnable runnable, V result) {
-        super(runnable, result);
     }
 
     @Override

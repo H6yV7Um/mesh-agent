@@ -6,7 +6,6 @@ import com.alibaba.mesh.config.annotation.Parameter;
  * CodecConfig
  *
  * @author yiji.github@hotmail.com
- *
  */
 public class CodecConfig extends AbstractConfig {
 

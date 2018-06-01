@@ -9,7 +9,6 @@ import java.util.Random;
 
 /**
  * random load balance.
- *
  */
 public class RandomLoadBalance extends AbstractLoadBalance {
 

@@ -29,13 +29,11 @@ public abstract class AbstractEtcdClient<WatcherListener> implements EtcdClient 
     private final Set<StateListener> stateListeners = new ConcurrentHashSet<>();
 
     private final ConcurrentMap<String, ConcurrentMap<ChildListener, WatcherListener>> childListeners = new ConcurrentHashMap<String, ConcurrentMap<ChildListener, WatcherListener>>();
-
-    private volatile boolean closed = false;
-
     private final List<String> categroies = Arrays.asList(Constants.PROVIDERS_CATEGORY
-                                                        , Constants.CONSUMERS_CATEGORY
-                                                        , Constants.ROUTERS_CATEGORY
-                                                        , Constants.CONFIGURATORS_CATEGORY);
+            , Constants.CONSUMERS_CATEGORY
+            , Constants.ROUTERS_CATEGORY
+            , Constants.CONFIGURATORS_CATEGORY);
+    private volatile boolean closed = false;
 
     public AbstractEtcdClient(URL url) {
         this.url = url;
@@ -83,7 +81,7 @@ public abstract class AbstractEtcdClient<WatcherListener> implements EtcdClient 
         return addChildWatcherListener(path, targetListener);
     }
 
-    public WatcherListener getChildListener(String path, ChildListener listener){
+    public WatcherListener getChildListener(String path, ChildListener listener) {
         ConcurrentMap<ChildListener, WatcherListener> listeners = childListeners.get(path);
         if (listeners == null) {
             return null;
@@ -113,7 +111,7 @@ public abstract class AbstractEtcdClient<WatcherListener> implements EtcdClient 
     }
 
     protected String fixNamespace(String path) {
-        if(StringUtils.isEmpty(path)){
+        if (StringUtils.isEmpty(path)) {
             throw new IllegalArgumentException("path is required, actual null or ''");
         }
         return (path.charAt(0) != '/') ? (Constants.PATH_SEPARATOR + path) : path;
@@ -123,12 +121,11 @@ public abstract class AbstractEtcdClient<WatcherListener> implements EtcdClient 
         int i = fixedPath.lastIndexOf('/');
         if (i > 0) {
             String parentPath = fixedPath.substring(0, i);
-            if(categroies.stream().anyMatch( c -> fixedPath.endsWith(c))) {
+            if (categroies.stream().anyMatch(c -> fixedPath.endsWith(c))) {
                 if (!checkExists(parentPath)) {
                     this.doCreatePersistent(parentPath);
                 }
-            }
-            else if(categroies.stream().anyMatch( c -> parentPath.endsWith(c)) ){
+            } else if (categroies.stream().anyMatch(c -> parentPath.endsWith(c))) {
                 String grandfather = parentPath.substring(0, parentPath.lastIndexOf('/'));
                 if (!checkExists(grandfather)) {
                     this.doCreatePersistent(grandfather);

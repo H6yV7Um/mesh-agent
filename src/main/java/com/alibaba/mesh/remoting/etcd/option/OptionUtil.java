@@ -11,6 +11,8 @@ import java.util.Arrays;
  */
 public class OptionUtil {
 
+    public static final byte[] NO_PREFIX_END = {0};
+
     public static final ByteSequence prefixEndOf(ByteSequence prefix) {
         byte[] endKey = prefix.getBytes().clone();
         for (int i = endKey.length - 1; i >= 0; i--) {
@@ -23,7 +25,7 @@ public class OptionUtil {
         return ByteSequence.fromBytes(NO_PREFIX_END);
     }
 
-    public static boolean isRecoverable(Status status){
+    public static boolean isRecoverable(Status status) {
         return isHaltError(status)
                 || isNoLeaderError(status)
                 // ephemeral is expired
@@ -45,12 +47,12 @@ public class OptionUtil {
     }
 
     public static boolean isProtocolError(Throwable e) {
-        if(e == null) return false;
+        if (e == null) return false;
         Throwable cause = e.getCause();
         while (cause != null) {
-            if(cause instanceof Http2Exception) {
-                Http2Exception t = (Http2Exception)cause;
-                if("PROTOCOL_ERROR".equals(t.error().name())){
+            if (cause instanceof Http2Exception) {
+                Http2Exception t = (Http2Exception) cause;
+                if ("PROTOCOL_ERROR".equals(t.error().name())) {
                     return true;
                 }
             }
@@ -58,6 +60,4 @@ public class OptionUtil {
         }
         return false;
     }
-
-    public static final byte[] NO_PREFIX_END = {0};
 }

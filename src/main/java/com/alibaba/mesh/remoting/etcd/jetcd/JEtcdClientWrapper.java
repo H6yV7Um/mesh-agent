@@ -9,7 +9,6 @@ import com.alibaba.mesh.remoting.etcd.option.OptionUtil;
 
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.lease.LeaseKeepAliveResponse;
 import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.PutOption;
 import io.grpc.ManagedChannel;
@@ -38,9 +37,8 @@ import static java.util.stream.Collectors.toList;
  */
 public class JEtcdClientWrapper {
 
-    private Logger logger = LoggerFactory.getLogger(JEtcdClientWrapper.class);
-
     private final URL url;
+    private Logger logger = LoggerFactory.getLogger(JEtcdClientWrapper.class);
     private Client client;
     private volatile boolean started = false;
     private volatile boolean connectState = false;

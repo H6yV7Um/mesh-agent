@@ -82,7 +82,7 @@ public class MeshProtocol extends AbstractProtocol {
     }
 
     private boolean isClientSide(Channel channel) {
-        InetSocketAddress address = (InetSocketAddress)channel.remoteAddress();
+        InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
         URL url = channel.attr(Keys.URL_KEY).get();
         return url.getPort() == address.getPort() &&
                 NetUtils.filterLocalHost(url.getIp())
@@ -93,12 +93,12 @@ public class MeshProtocol extends AbstractProtocol {
         boolean isCallBackServiceInvoke = false;
         boolean isStubServiceInvoke = false;
         Channel channel = ctx.channel();
-        int port = ((InetSocketAddress)channel.localAddress()).getPort();
+        int port = ((InetSocketAddress) channel.localAddress()).getPort();
         String path = inv.getAttachments().get(Constants.PATH_KEY);
         // if it's callback service on client side
         isStubServiceInvoke = Boolean.TRUE.toString().equals(inv.getAttachments().get(Constants.STUB_EVENT_KEY));
         if (isStubServiceInvoke) {
-            port = ((InetSocketAddress)channel.remoteAddress()).getPort();
+            port = ((InetSocketAddress) channel.remoteAddress()).getPort();
         }
         //callback
         isCallBackServiceInvoke = isClientSide(channel) && !isStubServiceInvoke;

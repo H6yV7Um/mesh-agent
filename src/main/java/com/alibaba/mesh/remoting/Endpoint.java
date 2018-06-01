@@ -7,7 +7,6 @@ import java.net.SocketAddress;
 /**
  * Endpoint. (API/SPI, Prototype, ThreadSafe)
  *
- *
  * @see Channel
  * @see com.alibaba.agent.remoting.Client
  * @see Server

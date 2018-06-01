@@ -112,17 +112,17 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
         return token;
     }
 
-    public void setToken(String token) {
-        checkName("token", token);
-        this.token = token;
-    }
-
     public void setToken(Boolean token) {
         if (token == null) {
             setToken((String) null);
         } else {
             setToken(String.valueOf(token));
         }
+    }
+
+    public void setToken(String token) {
+        checkName("token", token);
+        this.token = token;
     }
 
     public Boolean isDeprecated() {
@@ -162,16 +162,16 @@ public abstract class AbstractServiceConfig extends AbstractInterfaceConfig {
         return accesslog;
     }
 
-    public void setAccesslog(String accesslog) {
-        this.accesslog = accesslog;
-    }
-
     public void setAccesslog(Boolean accesslog) {
         if (accesslog == null) {
             setAccesslog((String) null);
         } else {
             setAccesslog(String.valueOf(accesslog));
         }
+    }
+
+    public void setAccesslog(String accesslog) {
+        this.accesslog = accesslog;
     }
 
     public Integer getExecutes() {

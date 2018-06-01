@@ -320,15 +320,15 @@ public final class StringUtils {
     private static boolean parseKeyValuePair(String str, String itemSeparator, String key) {
         String[] tmp = str.split(itemSeparator);
         String defaultKey = key != null
-                                &&  !key.startsWith(Constants.DEFAULT_KEY_PREFIX)
-                            ? Constants.DEFAULT_KEY_PREFIX + key
-                            : key;
+                && !key.startsWith(Constants.DEFAULT_KEY_PREFIX)
+                ? Constants.DEFAULT_KEY_PREFIX + key
+                : key;
         for (int i = 0; i < tmp.length; i++) {
             Matcher matcher = KVP_PATTERN.matcher(tmp[i]);
             if (matcher.matches() == false)
                 continue;
             String matchedKey = matcher.group(1);
-            if(matchedKey.equals(key) || matchedKey.equals(defaultKey)) return true;
+            if (matchedKey.equals(key) || matchedKey.equals(defaultKey)) return true;
         }
         return false;
     }
@@ -443,9 +443,9 @@ public final class StringUtils {
         return (string == null) ? "" : string;
     }
 
-    public static long fnv1a_64(String key){
+    public static long fnv1a_64(String key) {
         long hashCode = 0xcbf29ce484222325L;
-        for(int i = 0; i < key.length(); ++i){
+        for (int i = 0; i < key.length(); ++i) {
             char ch = key.charAt(i);
             hashCode ^= ch;
             hashCode *= 0x100000001b3L;

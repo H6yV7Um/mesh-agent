@@ -26,9 +26,9 @@ public class MeshNamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("registry", new MeshBeanDefinitionParser(RegistryConfig.class, true));
         registerBeanDefinitionParser("protocol", new MeshBeanDefinitionParser(ProtocolConfig.class, true));
         registerBeanDefinitionParser("endpoint", new MeshBeanDefinitionParser(EndPointConfig.class, true));
-        registerBeanDefinitionParser("codec"   , new MeshBeanDefinitionParser(CodecConfig.class, true));
+        registerBeanDefinitionParser("codec", new MeshBeanDefinitionParser(CodecConfig.class, true));
         registerBeanDefinitionParser("exporter", new MeshBeanDefinitionParser(ExporterBean.class, true));
-        registerBeanDefinitionParser("referer" , new MeshBeanDefinitionParser(RefererBean.class, false));
+        registerBeanDefinitionParser("referer", new MeshBeanDefinitionParser(RefererBean.class, false));
     }
 
 }

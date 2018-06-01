@@ -13,7 +13,6 @@ import com.alibaba.mesh.rpc.Exporter;
 import com.alibaba.mesh.rpc.Invoker;
 import com.alibaba.mesh.rpc.Protocol;
 import com.alibaba.mesh.rpc.ProxyFactory;
-import com.alibaba.mesh.rpc.cluster.ConfiguratorFactory;
 import com.alibaba.mesh.rpc.service.GenericException;
 import com.alibaba.mesh.rpc.service.GenericService;
 
@@ -39,37 +38,25 @@ import static com.alibaba.mesh.common.utils.NetUtils.isInvalidPort;
  * ExporterConfig
  *
  * @author yiji.github@hotmail.com
- *
  */
 public class ExporterConfig<T> extends AbstractServiceConfig {
 
+    public static final NoopService NOOP_SERVICE = new NoopService();
     private static final long serialVersionUID = 6994342007257717119L;
-
     private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
-
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
-
     private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<String, Integer>();
-
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("AgentServiceDelayExporter", true));
-
     private final List<URL> urls = new ArrayList<URL>();
     private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
-
     private Class<?> interfaceClass;
-
     // interface type
     private String interfaceName;
-
     // service name
     private String path;
-
     private transient volatile boolean exported;
-
     private transient volatile boolean unexported;
-
     private volatile String generic;
-
     private EndPointConfig endPoint;
 
     public ExporterConfig() {
@@ -197,7 +184,7 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
 
         String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
         // read port from env.
-        if(StringUtils.isNotEmpty(dubboPort)){
+        if (StringUtils.isNotEmpty(dubboPort)) {
             map.put(Constants.ENDPOINT_PORT_KEY, dubboPort);
         }
 
@@ -429,19 +416,19 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         return interfaceName;
     }
 
-    public void setInterface(String interfaceName) {
-        this.interfaceName = interfaceName;
-        if (id == null || id.length() == 0) {
-            id = interfaceName;
-        }
-    }
-
     public void setInterface(Class<?> interfaceClass) {
         if (interfaceClass != null && !interfaceClass.isInterface()) {
             throw new IllegalStateException("The interface class " + interfaceClass + " is not a interface!");
         }
         this.interfaceClass = interfaceClass;
         setInterface(interfaceClass == null ? (String) null : interfaceClass.getName());
+    }
+
+    public void setInterface(String interfaceName) {
+        this.interfaceName = interfaceName;
+        if (id == null || id.length() == 0) {
+            id = interfaceName;
+        }
     }
 
     @Parameter(excluded = true)
@@ -494,11 +481,9 @@ public class ExporterConfig<T> extends AbstractServiceConfig {
         this.endPoint = endPoint;
     }
 
-    public static final NoopService NOOP_SERVICE = new NoopService();
-
-    public static class NoopService implements GenericService{
+    public static class NoopService implements GenericService {
         /**
-         *   Noop operation.
+         * Noop operation.
          */
         @Override
         public Object $invoke(String method, String[] parameterTypes, Object[] args) throws GenericException {

@@ -8,8 +8,6 @@ import com.alibaba.mesh.common.serialize.Serialization;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 public class FastJsonSerialization implements Serialization {
 

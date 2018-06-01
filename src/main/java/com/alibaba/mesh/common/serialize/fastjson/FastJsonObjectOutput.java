@@ -11,8 +11,6 @@ import java.util.Map;
 
 public class FastJsonObjectOutput implements ObjectOutput {
 
-    private final ByteBuf writer;
-
     public static final Charset ascii = Charset.forName("US-ASCII");
     public static final byte lineSeparator = System.getProperty("line.separator").getBytes(ascii)[0];
     public static final byte doubleQuotation = "\"".getBytes(ascii)[0];
@@ -20,6 +18,7 @@ public class FastJsonObjectOutput implements ObjectOutput {
     public static final byte rBracket = "}".getBytes(ascii)[0];
     public static final byte comma = ",".getBytes(ascii)[0];
     public static final byte colon = ":".getBytes(ascii)[0];
+    private final ByteBuf writer;
 
     public FastJsonObjectOutput(ByteBuf output) {
         this.writer = output;

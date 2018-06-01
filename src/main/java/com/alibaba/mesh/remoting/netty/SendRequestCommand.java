@@ -4,8 +4,6 @@ import com.alibaba.mesh.remoting.WriteQueue;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPromise;
-import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
 
 import javax.annotation.Nonnull;
 

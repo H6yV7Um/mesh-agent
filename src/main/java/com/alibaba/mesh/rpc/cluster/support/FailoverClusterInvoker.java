@@ -6,7 +6,6 @@ import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Invoker;
 import com.alibaba.mesh.rpc.Result;
-import com.alibaba.mesh.rpc.RpcContext;
 import com.alibaba.mesh.rpc.RpcException;
 import com.alibaba.mesh.rpc.cluster.Directory;
 import com.alibaba.mesh.rpc.cluster.LoadBalance;
@@ -24,7 +23,6 @@ import java.util.Set;
  * Note that retry causes latency.
  * <p>
  * <a href="http://en.wikipedia.org/wiki/Failover">Failover</a>
- *
  */
 public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
@@ -58,7 +56,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
             }
             Invoker<T> invoker = select(loadbalance, invocation, copyinvokers, invoked);
             invoked.add(invoker);
-            RpcContext.getContext().setInvokers((List) invoked);
+            // RpcContext.getContext().setInvokers((List) invoked);
             try {
                 Result result = invoker.invoke(invocation);
                 if (le != null && logger.isWarnEnabled()) {

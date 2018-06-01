@@ -33,7 +33,6 @@ import static com.alibaba.mesh.common.Constants.QOS_PORT;
 
 /**
  * RegistryProtocol
- *
  */
 public class RegistryProtocol implements Protocol {
 
@@ -317,6 +316,60 @@ public class RegistryProtocol implements Protocol {
         }
     }
 
+    static private class DestroyableExporter<T> implements Exporter<T> {
+
+        public static final ExecutorService executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("Exporter-Unexport", true));
+
+        private Exporter<T> exporter;
+        private Invoker<T> originInvoker;
+        private URL subscribeUrl;
+        private URL registerUrl;
+
+        public DestroyableExporter(Exporter<T> exporter, Invoker<T> originInvoker, URL subscribeUrl, URL registerUrl) {
+            this.exporter = exporter;
+            this.originInvoker = originInvoker;
+            this.subscribeUrl = subscribeUrl;
+            this.registerUrl = registerUrl;
+        }
+
+        @Override
+        public Invoker<T> getInvoker() {
+            return exporter.getInvoker();
+        }
+
+        @Override
+        public void unexport() {
+            Registry registry = RegistryProtocol.INSTANCE.getRegistry(originInvoker);
+            try {
+                registry.unregister(registerUrl);
+            } catch (Throwable t) {
+                logger.warn(t.getMessage(), t);
+            }
+            try {
+                NotifyListener listener = RegistryProtocol.INSTANCE.overrideListeners.remove(subscribeUrl);
+                registry.unsubscribe(subscribeUrl, listener);
+            } catch (Throwable t) {
+                logger.warn(t.getMessage(), t);
+            }
+
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int timeout = ConfigUtils.getServerShutdownTimeout();
+                        if (timeout > 0) {
+                            logger.info("Waiting " + timeout + "ms for registry to notify all consumers before unexport. Usually, this is called when you use mesh API");
+                            Thread.sleep(timeout);
+                        }
+                        exporter.unexport();
+                    } catch (Throwable t) {
+                        logger.warn(t.getMessage(), t);
+                    }
+                }
+            });
+        }
+    }
+
     /**
      * Reexport: the exporter destroy problem in protocol
      * 1.Ensure that the exporter returned by registryprotocol can be normal destroyed
@@ -432,60 +485,6 @@ public class RegistryProtocol implements Protocol {
             String key = getCacheKey(this.originInvoker);
             bounds.remove(key);
             exporter.unexport();
-        }
-    }
-
-    static private class DestroyableExporter<T> implements Exporter<T> {
-
-        public static final ExecutorService executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("Exporter-Unexport", true));
-
-        private Exporter<T> exporter;
-        private Invoker<T> originInvoker;
-        private URL subscribeUrl;
-        private URL registerUrl;
-
-        public DestroyableExporter(Exporter<T> exporter, Invoker<T> originInvoker, URL subscribeUrl, URL registerUrl) {
-            this.exporter = exporter;
-            this.originInvoker = originInvoker;
-            this.subscribeUrl = subscribeUrl;
-            this.registerUrl = registerUrl;
-        }
-
-        @Override
-        public Invoker<T> getInvoker() {
-            return exporter.getInvoker();
-        }
-
-        @Override
-        public void unexport() {
-            Registry registry = RegistryProtocol.INSTANCE.getRegistry(originInvoker);
-            try {
-                registry.unregister(registerUrl);
-            } catch (Throwable t) {
-                logger.warn(t.getMessage(), t);
-            }
-            try {
-                NotifyListener listener = RegistryProtocol.INSTANCE.overrideListeners.remove(subscribeUrl);
-                registry.unsubscribe(subscribeUrl, listener);
-            } catch (Throwable t) {
-                logger.warn(t.getMessage(), t);
-            }
-
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        int timeout = ConfigUtils.getServerShutdownTimeout();
-                        if (timeout > 0) {
-                            logger.info("Waiting " + timeout + "ms for registry to notify all consumers before unexport. Usually, this is called when you use mesh API");
-                            Thread.sleep(timeout);
-                        }
-                        exporter.unexport();
-                    } catch (Throwable t) {
-                        logger.warn(t.getMessage(), t);
-                    }
-                }
-            });
         }
     }
 }

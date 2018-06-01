@@ -19,7 +19,6 @@ package com.alibaba.mesh.demo;
 import com.alibaba.mesh.container.ContainerMain;
 import com.alibaba.mesh.container.spring.SpringContainer;
 import com.alibaba.mesh.remoting.exchange.ResponseCallback;
-import com.alibaba.mesh.remoting.http2.BeanLookup;
 import com.alibaba.mesh.rpc.RpcContext;
 import com.alibaba.mesh.rpc.service.GenericService;
 
@@ -41,7 +40,7 @@ public class MeshConsumer {
         System.setProperty(ContainerMain.SHUTDOWN_HOOK_KEY, "true");
 
         // Refer service
-        ContainerMain.main(new String[] {"spring", "http"});
+        ContainerMain.main(new String[]{"spring", "http"});
     }
 
     private final static class LocalDebugOnly implements ApplicationContextAware {
@@ -53,7 +52,7 @@ public class MeshConsumer {
             this.context = applicationContext;
         }
 
-        public void init(){
+        public void init() {
 
             GenericService demoService = (GenericService) context.getBean("delegate");
             int invokeOnlyOnce = 0;
@@ -63,9 +62,9 @@ public class MeshConsumer {
 
                     Thread.sleep(1000);
                     // call remote method
-                    demoService.$invoke("hash", new String[] { "Ljava/lang/String;" }, new Object[] { "World" });
+                    demoService.$invoke("hash", new String[]{"Ljava/lang/String;"}, new Object[]{"World"});
                     // get result
-                    RpcContext.getContext().getResponseFuture().setCallback(new ResponseCallback(){
+                    RpcContext.getContext().getResponseFuture().setCallback(new ResponseCallback() {
 
                         @Override
                         public void done(Object response) {

@@ -130,7 +130,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
                 String etcdaddress = System.getProperty("etcd.url");
                 if (etcdaddress != null && etcdaddress.length() > 0) {
-                    if(etcdaddress.startsWith("http://")){
+                    if (etcdaddress.startsWith("http://")) {
                         address = etcdaddress.substring(7);
                     }
                 }
@@ -205,6 +205,16 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
 
     /**
      * @param local
+     * @deprecated Replace to <code>setStub(String)</code>
+     */
+    @Deprecated
+    public void setLocal(String local) {
+        checkName("local", local);
+        this.local = local;
+    }
+
+    /**
+     * @param local
      * @deprecated Replace to <code>setStub(Boolean)</code>
      */
     @Deprecated
@@ -216,18 +226,13 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
-    /**
-     * @param local
-     * @deprecated Replace to <code>setStub(String)</code>
-     */
-    @Deprecated
-    public void setLocal(String local) {
-        checkName("local", local);
-        this.local = local;
-    }
-
     public String getStub() {
         return stub;
+    }
+
+    public void setStub(String stub) {
+        checkName("stub", stub);
+        this.stub = stub;
     }
 
     public void setStub(Boolean stub) {
@@ -236,11 +241,6 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         } else {
             setStub(String.valueOf(stub));
         }
-    }
-
-    public void setStub(String stub) {
-        checkName("stub", stub);
-        this.stub = stub;
     }
 
     public String getCluster() {

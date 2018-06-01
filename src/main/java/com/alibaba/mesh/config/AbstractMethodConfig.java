@@ -102,14 +102,6 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
         return mock;
     }
 
-    public void setMock(Boolean mock) {
-        if (mock == null) {
-            setMock((String) null);
-        } else {
-            setMock(String.valueOf(mock));
-        }
-    }
-
     public void setMock(String mock) {
         if (mock != null && mock.startsWith(Constants.RETURN_PREFIX)) {
             checkLength("mock", mock);
@@ -117,6 +109,14 @@ public abstract class AbstractMethodConfig extends AbstractConfig {
             checkName("mock", mock);
         }
         this.mock = mock;
+    }
+
+    public void setMock(Boolean mock) {
+        if (mock == null) {
+            setMock((String) null);
+        } else {
+            setMock(String.valueOf(mock));
+        }
     }
 
     public String getMerger() {

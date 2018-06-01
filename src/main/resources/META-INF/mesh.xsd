@@ -817,7 +817,8 @@
                 </xsd:attribute>
                 <xsd:attribute name="endpoint" type="xsd:string" use="optional">
                     <xsd:annotation>
-                        <xsd:documentation><![CDATA[ agent service endpoint, used for local forward ports.. ]]></xsd:documentation>
+                        <xsd:documentation>
+                            <![CDATA[ agent service endpoint, used for local forward ports.. ]]></xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
                 <xsd:anyAttribute namespace="##other" processContents="lax"/>

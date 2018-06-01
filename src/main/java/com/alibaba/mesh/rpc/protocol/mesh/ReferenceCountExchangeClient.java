@@ -95,7 +95,7 @@ final class ReferenceCountExchangeClient implements ExchangeClient {
 
     @Override
     public InetSocketAddress getLocalAddress() {
-        return (InetSocketAddress)client.getLocalAddress();
+        return (InetSocketAddress) client.getLocalAddress();
     }
 
     @Override

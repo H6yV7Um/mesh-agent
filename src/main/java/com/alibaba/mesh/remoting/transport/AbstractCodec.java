@@ -38,7 +38,7 @@ public abstract class AbstractCodec implements Codec4 {
         } else if ("server".equals(side)) {
             return false;
         } else {
-            InetSocketAddress address = (InetSocketAddress)channel.remoteAddress();
+            InetSocketAddress address = (InetSocketAddress) channel.remoteAddress();
             boolean client = url.getPort() == address.getPort()
                     && NetUtils.filterLocalHost(url.getIp()).equals(
                     NetUtils.filterLocalHost(address.getAddress()

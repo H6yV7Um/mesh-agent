@@ -20,39 +20,39 @@ public class Payload {
         this.data = data;
     }
 
-    public Payload stream(Http2Stream stream){
+    public Payload stream(Http2Stream stream) {
         this.stream = stream;
         return this;
     }
 
-    public Payload headers(Http2Headers headers){
+    public Payload headers(Http2Headers headers) {
         this.headers = headers;
         return this;
     }
 
-    public Payload data(ByteBuf data){
+    public Payload data(ByteBuf data) {
         this.data = data;
         return this;
     }
 
-    public Http2Stream stream(){
+    public Http2Stream stream() {
         return this.stream;
     }
 
-    public Http2Headers headers(){
+    public Http2Headers headers() {
         return this.headers;
     }
 
-    public ByteBuf data(){
+    public ByteBuf data() {
         return this.data;
     }
 
-    public Payload endOfStream(boolean endOfStream){
+    public Payload endOfStream(boolean endOfStream) {
         this.endOfStream = endOfStream;
         return this;
     }
 
-    public boolean endOfStream(){
+    public boolean endOfStream() {
         return this.endOfStream;
     }
 }

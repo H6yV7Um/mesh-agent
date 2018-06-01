@@ -7,6 +7,7 @@ import com.alibaba.mesh.common.utils.ConfigUtils;
 import com.alibaba.mesh.common.utils.RpcUtils;
 import com.alibaba.mesh.remoting.RemotingException;
 import com.alibaba.mesh.remoting.TimeoutException;
+import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeClient;
 import com.alibaba.mesh.rpc.Invocation;
 import com.alibaba.mesh.rpc.Invoker;
@@ -68,8 +69,9 @@ public class MeshInvoker<T> extends AbstractInvoker<T> {
                 currentClient.write(inv);
                 RpcContext.getContext().setFuture(null);
                 return new RpcResult();
-            }else{
-                RpcContext.getContext().setResponseFuture(currentClient.request(inv, timeout));
+            } else {
+                DefaultFuture defaultFuture = (DefaultFuture) currentClient.request(inv, timeout);
+                RpcContext.getContext().setResponseFuture(defaultFuture);
                 return new RpcResult();
             }
         } catch (TimeoutException e) {

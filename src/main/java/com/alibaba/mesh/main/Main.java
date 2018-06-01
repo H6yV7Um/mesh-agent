@@ -9,17 +9,17 @@ import com.alibaba.mesh.demo.MeshProvider;
  */
 public class Main {
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         String side = System.getProperty("type");
 
-        if(StringUtils.isEmpty(side)){
+        if (StringUtils.isEmpty(side)) {
             throw new IllegalArgumentException("type should be 'provider' or 'consumer', actual '" + StringUtils.nullToEmpty(side) + "'");
         }
 
-        if("consumer".equals(side)){
+        if ("consumer".equals(side)) {
             MeshConsumer.main(args);
-        }else if("provider".equals(side)){
+        } else if ("provider".equals(side)) {
             MeshProvider.main(args);
         }
 

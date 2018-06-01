@@ -21,10 +21,10 @@ public class HttpContainer implements Container {
      */
     @Override
     public void start() {
-        try{
+        try {
             http2Server.start();
             logger.info("Http server started.");
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("Failed to start http server", e);
         }
     }

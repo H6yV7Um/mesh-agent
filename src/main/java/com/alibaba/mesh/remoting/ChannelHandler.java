@@ -86,10 +86,10 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
     /**
      * Called once a bind operation is made.
      *
-     * @param ctx           the {@link ChannelHandlerContext} for which the bind operation is made
-     * @param localAddress  the {@link SocketAddress} to which it should bound
-     * @param promise       the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception    thrown if an error occurs
+     * @param ctx          the {@link ChannelHandlerContext} for which the bind operation is made
+     * @param localAddress the {@link SocketAddress} to which it should bound
+     * @param promise      the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) throws RemotingException;
@@ -97,11 +97,11 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
     /**
      * Called once a connect operation is made.
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the connect operation is made
-     * @param remoteAddress     the {@link SocketAddress} to which it should connect
-     * @param localAddress      the {@link SocketAddress} which is used as source on connect
-     * @param promise           the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception        thrown if an error occurs
+     * @param ctx           the {@link ChannelHandlerContext} for which the connect operation is made
+     * @param remoteAddress the {@link SocketAddress} to which it should connect
+     * @param localAddress  the {@link SocketAddress} which is used as source on connect
+     * @param promise       the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
@@ -110,9 +110,9 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
     /**
      * Called once a disconnect operation is made.
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the disconnect operation is made
-     * @param promise           the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception        thrown if an error occurs
+     * @param ctx     the {@link ChannelHandlerContext} for which the disconnect operation is made
+     * @param promise the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws RemotingException;
@@ -120,9 +120,9 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
     /**
      * Called once a close operation is made.
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the close operation is made
-     * @param promise           the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception        thrown if an error occurs
+     * @param ctx     the {@link ChannelHandlerContext} for which the close operation is made
+     * @param promise the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void close(ChannelHandlerContext ctx, ChannelPromise promise) throws RemotingException;
@@ -130,9 +130,9 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
     /**
      * Called once a deregister operation is made from the current registered {@link EventLoop}.
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the close operation is made
-     * @param promise           the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception        thrown if an error occurs
+     * @param ctx     the {@link ChannelHandlerContext} for which the close operation is made
+     * @param promise the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void deregister(ChannelHandlerContext ctx, ChannelPromise promise) throws RemotingException;
@@ -148,10 +148,10 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
      * {@link ChannelPipeline}. Those are then ready to be flushed to the actual {@link Channel} once
      * {@link Channel#flush()} is called
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the write operation is made
-     * @param msg               the message to write
-     * @param promise           the {@link ChannelPromise} to notify once the operation completes
-     * @throws Exception        thrown if an error occurs
+     * @param ctx     the {@link ChannelHandlerContext} for which the write operation is made
+     * @param msg     the message to write
+     * @param promise the {@link ChannelPromise} to notify once the operation completes
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws RemotingException;
@@ -160,8 +160,8 @@ public interface ChannelHandler extends ChannelInboundHandler, ChannelOutboundHa
      * Called once a flush operation is made. The flush operation will try to flush out all previous written messages
      * that are pending.
      *
-     * @param ctx               the {@link ChannelHandlerContext} for which the flush operation is made
-     * @throws Exception        thrown if an error occurs
+     * @param ctx the {@link ChannelHandlerContext} for which the flush operation is made
+     * @throws Exception thrown if an error occurs
      */
     @Override
     void flush(ChannelHandlerContext ctx) throws RemotingException;

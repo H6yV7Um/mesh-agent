@@ -1,6 +1,5 @@
 package com.alibaba.mesh.remoting.netty;
 
-import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.Version;
 import com.alibaba.mesh.common.utils.NetUtils;
@@ -28,17 +27,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class NettyClient extends AbstractClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
-
     public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Math.max(4, Runtime.getRuntime().availableProcessors()), new DefaultThreadFactory("NettyClientWorker", true));
+    private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 //    public static final NioEventLoopGroup nioWorkerGroup = new NioEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
 //    public static final EpollEventLoopGroup nioWorkerGroup = new EpollEventLoopGroup(Constants.DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyClientWorker", true));
-
-    private Bootstrap bootstrap;
-
-    private volatile Channel channel; // volatile, please copy reference to use
-
     private static volatile boolean startedHttpServer = false;
+    private Bootstrap bootstrap;
+    private volatile Channel channel; // volatile, please copy reference to use
 
     public NettyClient(final URL url, final ChannelHandler handler) throws RemotingException {
         super(url, wrapChannelHandler(url, handler));
@@ -47,7 +42,6 @@ public class NettyClient extends AbstractClient {
     @Override
     protected void doOpen() throws Throwable {
         logger.warn("available processors: " + Runtime.getRuntime().availableProcessors());
-        final NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), this);
         bootstrap = new Bootstrap();
         bootstrap.group(nioWorkerGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
@@ -68,6 +62,7 @@ public class NettyClient extends AbstractClient {
             @Override
             protected void initChannel(Channel ch) throws Exception {
                 NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyClient.this);
+                NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), NettyClient.this);
                 ch.pipeline()
                         .addLast("decoder", adapter.getDecoder())
                         .addLast("encoder", adapter.getEncoder())

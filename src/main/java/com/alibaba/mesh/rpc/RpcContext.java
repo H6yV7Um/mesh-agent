@@ -3,22 +3,18 @@ package com.alibaba.mesh.rpc;
 import com.alibaba.mesh.common.Constants;
 import com.alibaba.mesh.common.URL;
 import com.alibaba.mesh.common.utils.NetUtils;
-import com.alibaba.mesh.remoting.exchange.ResponseFuture;
+import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 
 import io.netty.util.concurrent.FastThreadLocal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Thread local context. (API, ThreadLocal, ThreadSafe)
@@ -31,6 +27,8 @@ import java.util.concurrent.TimeoutException;
  * @see com.alibaba.mesh.rpc.filter.ContextFilter
  */
 public class RpcContext {
+
+    private static final Logger logger = LoggerFactory.getLogger(RpcContext.class);
 
     private static final FastThreadLocal<RpcContext> LOCAL = new FastThreadLocal<RpcContext>() {
         @Override
@@ -55,19 +53,13 @@ public class RpcContext {
     private InetSocketAddress localAddress;
 
     private InetSocketAddress remoteAddress;
-    @Deprecated
-    private List<Invoker<?>> invokers;
-    @Deprecated
-    private Invoker<?> invoker;
-    @Deprecated
-    private Invocation invocation;
 
     // now we don't use the 'values' map to hold these objects
     // we want these objects to be as generic as possible
     private Object request;
     private Object response;
 
-    private ResponseFuture responseFuture;
+    private DefaultFuture responseFuture;
 
     protected RpcContext() {
     }
@@ -99,6 +91,10 @@ public class RpcContext {
         return request;
     }
 
+    public void setRequest(Object request) {
+        this.request = request;
+    }
+
     /**
      * Get the request object of the underlying RPC protocol, e.g. HttpServletRequest
      *
@@ -107,11 +103,6 @@ public class RpcContext {
     @SuppressWarnings("unchecked")
     public <T> T getRequest(Class<T> clazz) {
         return (request != null && clazz.isAssignableFrom(request.getClass())) ? (T) request : null;
-    }
-
-
-    public void setRequest(Object request) {
-        this.request = request;
     }
 
     /**
@@ -123,6 +114,10 @@ public class RpcContext {
         return response;
     }
 
+    public void setResponse(Object response) {
+        this.response = response;
+    }
+
     /**
      * Get the response object of the underlying RPC protocol, e.g. HttpServletResponse
      *
@@ -131,10 +126,6 @@ public class RpcContext {
     @SuppressWarnings("unchecked")
     public <T> T getResponse(Class<T> clazz) {
         return (response != null && clazz.isAssignableFrom(response.getClass())) ? (T) response : null;
-    }
-
-    public void setResponse(Object response) {
-        this.response = response;
     }
 
     /**
@@ -489,162 +480,11 @@ public class RpcContext {
         return values.get(key);
     }
 
-    /**
-     * @deprecated Replace to isProviderSide()
-     */
-    @Deprecated
-    public boolean isServerSide() {
-        return isProviderSide();
-    }
-
-    /**
-     * @deprecated Replace to isConsumerSide()
-     */
-    @Deprecated
-    public boolean isClientSide() {
-        return isConsumerSide();
-    }
-
-    /**
-     * @deprecated Replace to getUrls()
-     */
-    @Deprecated
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public List<Invoker<?>> getInvokers() {
-        return invokers == null && invoker != null ? (List) Arrays.asList(invoker) : invokers;
-    }
-
-    public RpcContext setInvokers(List<Invoker<?>> invokers) {
-        this.invokers = invokers;
-        if (invokers != null && !invokers.isEmpty()) {
-            List<URL> urls = new ArrayList<URL>(invokers.size());
-            for (Invoker<?> invoker : invokers) {
-                urls.add(invoker.getUrl());
-            }
-            setUrls(urls);
-        }
-        return this;
-    }
-
-    /**
-     * @deprecated Replace to getUrl()
-     */
-    @Deprecated
-    public Invoker<?> getInvoker() {
-        return invoker;
-    }
-
-    public RpcContext setInvoker(Invoker<?> invoker) {
-        this.invoker = invoker;
-        if (invoker != null) {
-            setUrl(invoker.getUrl());
-        }
-        return this;
-    }
-
-    /**
-     * @deprecated Replace to getMethodName(), getParameterTypes(), getArguments()
-     */
-    @Deprecated
-    public Invocation getInvocation() {
-        return invocation;
-    }
-
-    public RpcContext setInvocation(Invocation invocation) {
-        this.invocation = invocation;
-        if (invocation != null) {
-            setMethodName(invocation.getMethodName());
-            setParameterTypes(invocation.getParameterTypes());
-            setArguments(invocation.getArguments());
-        }
-        return this;
-    }
-
-    /**
-     * Async invocation. Timeout will be handled even if <code>Future.get()</code> is not called.
-     *
-     * @param callable
-     * @return get the return result from <code>future.get()</code>
-     */
-    @SuppressWarnings("unchecked")
-    public <T> Future<T> asyncCall(Callable<T> callable) {
-        try {
-            try {
-                setAttachment(Constants.ASYNC_KEY, Boolean.TRUE.toString());
-                final T o = callable.call();
-                //local invoke will return directly
-                if (o != null) {
-                    FutureTask<T> f = new FutureTask<T>(new Callable<T>() {
-                        @Override
-                        public T call() throws Exception {
-                            return o;
-                        }
-                    });
-                    f.run();
-                    return f;
-                } else {
-
-                }
-            } catch (Exception e) {
-                throw new RpcException(e);
-            } finally {
-                removeAttachment(Constants.ASYNC_KEY);
-            }
-        } catch (final RpcException e) {
-            return new Future<T>() {
-                @Override
-                public boolean cancel(boolean mayInterruptIfRunning) {
-                    return false;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return true;
-                }
-
-                @Override
-                public T get() throws InterruptedException, ExecutionException {
-                    throw new ExecutionException(e.getCause());
-                }
-
-                @Override
-                public T get(long timeout, TimeUnit unit)
-                        throws InterruptedException, ExecutionException,
-                        TimeoutException {
-                    return get();
-                }
-            };
-        }
-        return ((Future<T>) getContext().getFuture());
-    }
-
-    /**
-     * one way async call, send request only, and result is not required
-     *
-     * @param runnable
-     */
-    public void asyncCall(Runnable runnable) {
-        try {
-            setAttachment(Constants.RETURN_KEY, Boolean.FALSE.toString());
-            runnable.run();
-        } catch (Throwable e) {
-            // FIXME should put exception in future?
-            throw new RpcException("oneway call error ." + e.getMessage(), e);
-        } finally {
-            removeAttachment(Constants.RETURN_KEY);
-        }
-    }
-
-    public ResponseFuture getResponseFuture() {
+    public DefaultFuture getResponseFuture() {
         return responseFuture;
     }
 
-    public void setResponseFuture(ResponseFuture responseFuture) {
+    public void setResponseFuture(DefaultFuture responseFuture) {
         this.responseFuture = responseFuture;
     }
 }

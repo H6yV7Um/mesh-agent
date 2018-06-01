@@ -1,7 +1,6 @@
 package com.alibaba.mesh.common.serialize;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Object output.

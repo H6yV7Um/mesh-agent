@@ -16,9 +16,7 @@ public interface Codeable extends Codec4 {
     byte getCodecTypeId();
 
     /**
-     *
      * 获取解码的requestId，应该在fullDecode之后调用
-     *
      */
     long getRequestId(ByteBuf payload);
 

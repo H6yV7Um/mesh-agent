@@ -10,6 +10,7 @@ import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
+import com.alibaba.mesh.remoting.support.header.DefaultFutureThreadLocal;
 import com.alibaba.mesh.remoting.transport.AbstractCodec;
 import com.alibaba.mesh.remoting.transport.CodecSupport;
 
@@ -27,23 +28,19 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * ExchangeCodec.
- *
- *
- *
  */
 public abstract class ExchangeCodec extends AbstractCodec {
 
-    // header length.
-    protected static final int HEADER_LENGTH = 21;
-
-    // magic header.
-    protected static final short MAGIC = (short) 0xdaba;
-    protected static final byte MAGIC_HIGH = Bytes.short2bytes(MAGIC)[0];
-    protected static final byte MAGIC_LOW = Bytes.short2bytes(MAGIC)[1];
     // message flag.
     public static final byte FLAG_REQUEST = (byte) 0x80;
     public static final byte FLAG_TWOWAY = (byte) 0x40;
     public static final byte FLAG_EVENT = (byte) 0x20;
+    // header length.
+    protected static final int HEADER_LENGTH = 21;
+    // magic header.
+    protected static final short MAGIC = (short) 0xdaba;
+    protected static final byte MAGIC_HIGH = Bytes.short2bytes(MAGIC)[0];
+    protected static final byte MAGIC_LOW = Bytes.short2bytes(MAGIC)[1];
     protected static final int SERIALIZATION_MASK = 0x1f;
     private static final Logger logger = LoggerFactory.getLogger(ExchangeCodec.class);
 
@@ -63,7 +60,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
     @Override
     public Object decode(ChannelHandlerContext ctx, ByteBuf buffer) throws IOException {
         int readable = buffer.readableBytes(),
-        received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
+                received = readable <= HEADER_LENGTH ? readable : HEADER_LENGTH;
         // maybe call retain() ??
         ByteBuf header = buffer.slice(buffer.readerIndex(), received);
         // set index to message body
@@ -93,7 +90,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
                 }
             });
 
-            if(i > 0) {
+            if (i > 0) {
                 // set index to message head
                 buffer.readerIndex(buffer.readerIndex() - received + i - 1);
                 // header = buffer.slice(buffer.readerIndex(), i - 1);
@@ -121,11 +118,11 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
         Object data = decodeBody(ctx, url, buffer, header);
 
-        if(data == null) {
+        if (data == null) {
             logger.error("consumer got null..");
         }
 
-        if(data == DecodeResult.NEED_MORE_INPUT) {
+        if (data == DecodeResult.NEED_MORE_INPUT) {
             return DecodeResult.NEED_MORE_INPUT;
         }
 
@@ -137,12 +134,12 @@ public abstract class ExchangeCodec extends AbstractCodec {
         // set request and serialization flag.
         // slot [2]
         byte flag = header.getByte(2),
-        // set codec type, eg: mesh
-        // slot[3]
-             codec = header.getByte(3);
+                // set codec type, eg: mesh
+                // slot[3]
+                codec = header.getByte(3);
 
         Codeable codeable = CodecSupport.getCodeable(url);// .getCodeableById(codec);
-        if(codeable == null) {
+        if (codeable == null) {
             throw new UnsupportedEncodingException("Not found extension " + url.getParameter(Constants.CODEABLE_KEY, Constants.DEFAULT_REMOTING_CODEC));
         }
 
@@ -151,7 +148,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
         long id = header.getLong(9);
         // get data length
         // slot [17]
-        int  len = header.getInt(17);
+        int len = header.getInt(17);
         if ((flag & FLAG_REQUEST) == 0) {
             // decode response.
             Response response = new Response(id);
@@ -167,7 +164,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
                 boolean isClientSide = isClientSide(url, ctx.channel());
 
                 int weight = header.getInt(4);
-                if(isClientSide){
+                if (isClientSide) {
                     // set current channel weight
                     ctx.channel().attr(Keys.WEIGHT_KEY).set(weight);
                 }
@@ -177,13 +174,13 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     if (response.isEvent()) {
                         data = decodeEventData(ctx, buffer);
                     } else {
-                        if(isClientSide){
+                        if (isClientSide) {
                             data = codeable.decode(ctx, buffer);
-                        }else {
+                        } else {
                             // mesh server
                             // never happen if close heartbeat
                             Object payload = DecodeResult.NEED_MORE_INPUT;
-                            while ((payload = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT){
+                            while ((payload = codeable.decodeBytes(ctx, buffer)) != DecodeResult.NEED_MORE_INPUT) {
                                 response.setRemoteId(codeable.getRequestId((ByteBuf) payload));
                             }
                             data = payload;
@@ -233,13 +230,11 @@ public abstract class ExchangeCodec extends AbstractCodec {
     }
 
     protected Object getRequestData(long id) {
-        DefaultFuture future = DefaultFuture.getFuture(id);
-        if (future == null)
-            return null;
-        Request req = future.getRequest();
-        if (req == null)
-            return null;
-        return req.getData();
+        DefaultFuture request = DefaultFutureThreadLocal.getResponseFuture(id);
+        if (request != null) {
+            return request.getRequest().getData();
+        }
+        return null;
     }
 
     protected void encodeRequest(ChannelHandlerContext ctx, ByteBuf buffer, Request req) throws IOException {
@@ -267,7 +262,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
         Codeable codeable = CodecSupport.getCodeable(url);
 
-        if(codeable == null) {
+        if (codeable == null) {
             throw new UnsupportedEncodingException("Not found extension '" + url.getParameter(Constants.CODEC_KEY, Constants.DEFAULT_REMOTING_CODEC));
         }
 
@@ -289,7 +284,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
 
         // encode request data.
         int savedWriteIndex = buffer.writerIndex(),
-            readyWriteIndex = savedWriteIndex + HEADER_LENGTH;
+                readyWriteIndex = savedWriteIndex + HEADER_LENGTH;
         buffer.writerIndex(readyWriteIndex);
 
         if (req.isEvent()) {
@@ -336,7 +331,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
             header.writerIndex(4);
 
             int weight = 100;
-            if(!isClientSide(url, channel)){
+            if (!isClientSide(url, channel)) {
                 // weight = ...
             }
 
@@ -362,7 +357,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
                     encodeEventData(ctx, buffer, response.getResult());
                 } else {
                     // set received bytes into current buffer
-                    buffer.writeBytes((ByteBuf)response.getResult());
+                    buffer.writeBytes((ByteBuf) response.getResult());
                 }
             } else {
                 // todo 待处理
@@ -419,7 +414,7 @@ public abstract class ExchangeCodec extends AbstractCodec {
         buffer.writeChar('H');
     }
 
-    protected Object decode0(ChannelHandlerContext ctx, ByteBuf buffer, int readable, ByteBuf header) throws IOException{
+    protected Object decode0(ChannelHandlerContext ctx, ByteBuf buffer, int readable, ByteBuf header) throws IOException {
         throw new IllegalArgumentException("failed to decode from channel " + ctx.channel()
                 + ", sub codec may be override decode0"
                 + " method to support this message type.");

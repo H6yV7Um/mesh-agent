@@ -124,7 +124,7 @@ final class LazyConnectExchangeClient implements ExchangeClient {
         if (client == null) {
             return InetSocketAddress.createUnresolved(NetUtils.getLocalHost(), 0);
         } else {
-            return (InetSocketAddress)client.getLocalAddress();
+            return (InetSocketAddress) client.getLocalAddress();
         }
     }
 

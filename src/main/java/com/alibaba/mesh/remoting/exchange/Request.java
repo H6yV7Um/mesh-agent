@@ -32,6 +32,8 @@ public class Request {
 
     private Object mData;
 
+    private DefaultFuture guard;
+
     public Request() {
         mId = newId();
     }
@@ -118,6 +120,14 @@ public class Request {
         if (isHeartbeat) {
             setEvent(HEARTBEAT_EVENT);
         }
+    }
+
+    public DefaultFuture guard() {
+        return guard;
+    }
+
+    public void setGuard(DefaultFuture guard) {
+        this.guard = guard;
     }
 
     @Override

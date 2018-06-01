@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -65,8 +65,8 @@ public class NettyServer extends AbstractServer implements Server {
         workerGroup = new NioEventLoopGroup(getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
                 new DefaultThreadFactory("NettyServerWorker", true));
 
-        final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
-        channels = statisticHandler.getChannels();
+//        final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
+//        channels = statisticHandler.getChannels();
 
 //        bootstrap.group(bossGroup, bossGroup)
         bootstrap.group(bossGroup, workerGroup)
@@ -84,7 +84,7 @@ public class NettyServer extends AbstractServer implements Server {
                         ch.pipeline()
                                 .addLast("decoder", adapter.getDecoder())
                                 .addLast("encoder", adapter.getEncoder())
-                                .addLast("statistic", statisticHandler)
+//                                .addLast("statistic", statisticHandler)
                                 .addLast("handler", deliveryHandler);
                     }
                 });
@@ -136,17 +136,21 @@ public class NettyServer extends AbstractServer implements Server {
         }
     }
 
+    /**
+     *
+     */
     @Override
     public Collection<Channel> getChannels() {
-        Collection<Channel> chs = new HashSet<Channel>();
-        for (Channel channel : this.channels.values()) {
-            if (channel.isActive()) {
-                chs.add(channel);
-            } else {
-                channels.remove(NetUtils.toAddressString((InetSocketAddress) channel.remoteAddress()));
-            }
-        }
-        return chs;
+        return Collections.emptyList();
+//        Collection<Channel> chs = new HashSet<Channel>();
+//        for (Channel channel : this.channels.values()) {
+//            if (channel.isActive()) {
+//                chs.add(channel);
+//            } else {
+//                channels.remove(NetUtils.toAddressString((InetSocketAddress) channel.remoteAddress()));
+//            }
+//        }
+//        return chs;
     }
 
     @Override

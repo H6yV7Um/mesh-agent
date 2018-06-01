@@ -41,12 +41,13 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
 
     private JEtcdClientWrapper clientWrapper;
     private ScheduledExecutorService reconnectSchedule;
+    private Logger logger = LoggerFactory.getLogger(JEtcdClient.class);
 
     public JEtcdClient(URL url) {
         super(url);
-        try{
+        try {
             clientWrapper = new JEtcdClientWrapper(url);
-            clientWrapper.setConnectionStateListener((client, state)->{
+            clientWrapper.setConnectionStateListener((client, state) -> {
                 if (state == StateListener.CONNECTED) {
                     JEtcdClient.this.stateChanged(StateListener.CONNECTED);
                 } else if (state == StateListener.DISCONNECTED) {
@@ -54,9 +55,9 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
                 }
             });
             reconnectSchedule = Executors.newScheduledThreadPool(1,
-                                    new NamedThreadFactory("auto-reconnect"));
+                    new NamedThreadFactory("auto-reconnect"));
             clientWrapper.start();
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
@@ -124,24 +125,23 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
 
     @Override
     public void doClose() {
-        try{
+        try {
             reconnectSchedule.shutdownNow();
-        }catch (Exception e){
+        } catch (Exception e) {
 
-        }finally {
+        } finally {
             clientWrapper.doClose();
         }
     }
 
     public class EtcdWatcher implements StreamObserver<WatchResponse> {
 
-        private volatile ChildListener listener;
-
         protected volatile WatchGrpc.WatchStub watchStub;
         protected volatile StreamObserver<WatchRequest> watchRequest;
         protected volatile long watchId;
         protected volatile String path;
         protected volatile Throwable throwable;
+        private volatile ChildListener listener;
         private AtomicInteger retry = new AtomicInteger();
 
         public EtcdWatcher(ChildListener listener) {
@@ -152,7 +152,7 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
         public void onNext(WatchResponse response) {
 
             // prevents grpc on sending watchResponse to a closed watch client.
-            if(!isConnected()){
+            if (!isConnected()) {
                 return;
             }
 
@@ -170,20 +170,21 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
                             String key = keyValue.getKey().toStringUtf8();
 
                             int index = path.length(), count = 0;
-                            if( key.length() >= index ){
-                                for(; (index = key.indexOf(Constants.PATH_SEPARATOR, index )) != -1; ++index) {
+                            if (key.length() >= index) {
+                                for (; (index = key.indexOf(Constants.PATH_SEPARATOR, index)) != -1; ++index) {
                                     if (count++ > 1) break;
                                 }
                             }
 
                             // if current path changed or direct path changed
-                            if(path.equals(key) || count == 1){
+                            if (path.equals(key) || count == 1) {
                                 // May be optimized in the future.
                                 listener.childChanged(path, clientWrapper.getChildren(path));
                             }
                             break;
                         }
-                        default: break;
+                        default:
+                            break;
                     }
                 }
             }
@@ -197,20 +198,20 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
         public void unwatch() {
 
             // prevents grpc on sending watchResponse to a closed watch client.
-            if(!isConnected()){
+            if (!isConnected()) {
                 return;
             }
 
-            try{
+            try {
                 this.listener = null;
-                if(watchRequest != null) {
+                if (watchRequest != null) {
                     WatchCancelRequest watchCancelRequest =
                             WatchCancelRequest.newBuilder().setWatchId(watchId).build();
                     WatchRequest cancelRequest = WatchRequest.newBuilder()
                             .setCancelRequest(watchCancelRequest).build();
                     this.watchRequest.onNext(cancelRequest);
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 // ignore
             }
         }
@@ -221,8 +222,8 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
                 throw new ClosedClientException("watch client has been closed, path '" + path + "'");
             }
 
-            if(this.path != null) {
-                if(this.path.equals(path)) {
+            if (this.path != null) {
+                if (this.path.equals(path)) {
                     return clientWrapper.getChildren(path);
                 }
                 unwatch();
@@ -254,7 +255,7 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
 
             this.throwable = e;
 
-            logger.error("watcher client has error occurred, current path '" + path + "'",  e);
+            logger.error("watcher client has error occurred, current path '" + path + "'", e);
 
             // prevents grpc on sending error to a closed watch client.
             if (!isConnected()) {
@@ -277,7 +278,7 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
         }
 
         protected void recreateWatchRequest() {
-            if(watchRequest == null) {
+            if (watchRequest == null) {
                 this.watchStub = WatchGrpc.newStub(clientWrapper.getChannel());
                 this.watchRequest = watchStub.watch(this);
             }
@@ -299,6 +300,4 @@ public class JEtcdClient extends AbstractEtcdClient<JEtcdClient.EtcdWatcher> {
             // do not touch this method, if you want terminate this stream.
         }
     }
-
-    private Logger logger = LoggerFactory.getLogger(JEtcdClient.class);
 }

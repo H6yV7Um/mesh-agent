@@ -53,9 +53,9 @@ public class NettyHttp2ServerHandler extends AbstractHttp2CodecHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if(msg instanceof Payload) {
+        if (msg instanceof Payload) {
 
-            Payload payload = (Payload)msg;
+            Payload payload = (Payload) msg;
 
             int streamId = payload.stream().id();
             Http2Stream stream = connection().stream(streamId);
@@ -64,14 +64,14 @@ public class NettyHttp2ServerHandler extends AbstractHttp2CodecHandler {
                 return;
             }
 
-            if(payload.endOfStream()){
+            if (payload.endOfStream()) {
                 stream.removeProperty(streamKey);
             }
 
             encoder().writeHeaders(ctx, streamId, payload.headers(), 0, payload.endOfStream(), promise);
             encoder().writeData(ctx, payload.stream().id(), payload.data(), 0, payload.endOfStream(), promise);
 
-        }else{
+        } else {
             super.write(ctx, msg, promise);
         }
     }
@@ -117,7 +117,7 @@ public class NettyHttp2ServerHandler extends AbstractHttp2CodecHandler {
             Http2Stream http2Stream = requireHttp2Stream(streamId);
             http2Stream.setProperty(streamKey, new Payload(http2Stream, headers));
         } catch (Exception e) {
-            logger.warn( "Unexpected onHeaderRead.", e);
+            logger.warn("Unexpected onHeaderRead.", e);
             throw Http2Exception.streamError(
                     streamId, Http2Error.INTERNAL_ERROR, e, StringUtils.nullToEmpty(e.getMessage()));
         }

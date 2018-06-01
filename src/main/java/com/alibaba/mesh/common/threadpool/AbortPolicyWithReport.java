@@ -24,14 +24,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class AbortPolicyWithReport extends ThreadPoolExecutor.AbortPolicy {
 
     protected static final Logger logger = LoggerFactory.getLogger(AbortPolicyWithReport.class);
-
-    private final String threadName;
-
-    private final URL url;
-
     private static volatile long lastPrintTime = 0;
-
     private static Semaphore guard = new Semaphore(1);
+    private final String threadName;
+    private final URL url;
 
     public AbortPolicyWithReport(String threadName, URL url) {
         this.threadName = threadName;
@@ -73,9 +69,9 @@ public class AbortPolicyWithReport extends ThreadPoolExecutor.AbortPolicy {
                 String OS = System.getProperty("os.name").toLowerCase();
 
                 // window system don't support ":" in file name
-                if(OS.contains("win")){
+                if (OS.contains("win")) {
                     sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-                }else {
+                } else {
                     sdf = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
                 }
 

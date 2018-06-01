@@ -5,7 +5,6 @@ import com.alibaba.mesh.common.utils.NetUtils;
 import com.alibaba.mesh.common.utils.StringUtils;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.DefaultFuture;
 import com.alibaba.mesh.remoting.exchange.ExchangeHandler;
 import com.alibaba.mesh.remoting.exchange.Request;
@@ -25,18 +24,10 @@ import java.net.InetSocketAddress;
  */
 public class HeaderExchangeHandler extends AbstractChannelHandler {
 
-    public WriteQueue writeQueue;
-
     protected static final Logger logger = LoggerFactory.getLogger(HeaderExchangeHandler.class);
 
     public HeaderExchangeHandler(ExchangeHandler handler) {
         super(handler);
-    }
-
-    static void handleResponse(Channel channel, Response response) throws RemotingException {
-        if (response != null && !response.isEvent()) {
-            DefaultFuture.received(channel, response);
-        }
     }
 
     private static boolean isClientSide(Channel channel) {
@@ -45,6 +36,15 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         return url.getPort() == address.getPort() &&
                 NetUtils.filterLocalHost(url.getIp())
                         .equals(NetUtils.filterLocalHost(address.getAddress().getHostAddress()));
+    }
+
+    void handleResponse(ChannelHandlerContext ctx, Response response) throws RemotingException {
+        if (response != null && !response.isEvent()) {
+            DefaultFuture responseFuture = DefaultFutureThreadLocal.getAndRemoveResponseFuture(response.getId());
+            if (responseFuture != null) {
+                responseFuture.doReceived(response);
+            }
+        }
     }
 
     void handlerEvent(Channel channel, Request req) throws RemotingException {
@@ -81,7 +81,6 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws RemotingException {
-        this.writeQueue = new WriteQueue(ctx.channel());
         Channel channel = ctx.channel();
         channel.attr(Keys.READ_TIMESTAMP).set(System.currentTimeMillis());
         channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
@@ -101,17 +100,16 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
         Throwable exception = null;
         Channel channel = ctx.channel();
         try {
+            if (message instanceof Request) {
+                if (message instanceof Request) {
+                    // handle request.
+                    Request request = (Request) message;
+                    if (request.isTwoWay()) {
+                        DefaultFutureThreadLocal.putResponseFuture(request.getId(), request.guard());
+                    }
+                }
+            }
             channel.attr(Keys.WRITE_TIMESTAMP).set(System.currentTimeMillis());
-//            writeQueue.enqueue(new InvokeMethodCommand(message,
-//                    promise.addListener(new ChannelFutureListener() {
-//                        @Override
-//                        public void operationComplete(ChannelFuture future) throws Exception {
-//                            if (message instanceof Request) {
-//                                Request request = (Request) message;
-//                                DefaultFuture.sent(channel, request);
-//                            }
-//                        }
-//                    })), false);
             handler.write(ctx, message, promise);
         } catch (Throwable t) {
             exception = t;
@@ -141,19 +139,17 @@ public class HeaderExchangeHandler extends AbstractChannelHandler {
                 if (request.isTwoWay()) {
                     Response response = handleRequest(ctx, request);
                     if (response != null) {
-                        ctx.write(response);
+                        ctx.writeAndFlush(response);
                     }
                 } else {
                     handler.channelRead(ctx, request);
                 }
             }
         } else if (message instanceof Response) {
-            handleResponse(channel, (Response) message);
+            handleResponse(ctx, (Response) message);
         } else {
             handler.channelRead(ctx, message);
         }
-
-        writeQueue.scheduleFlush();
     }
 
     @Override

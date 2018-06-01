@@ -22,11 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * DefaultMessageClient
@@ -86,6 +83,9 @@ public class HeaderExchangeClient implements ExchangeClient {
 
                     @Override
                     public void operationComplete(ChannelFuture ft) throws Exception {
+
+                        future.sent(channel, req);
+
                         if (ft.isCancelled()) {
                             future.cancel();
                             return;
@@ -97,7 +97,7 @@ public class HeaderExchangeClient implements ExchangeClient {
                             response.setStatus(Response.CLIENT_ERROR);
                             response.setResult(ft.cause());
                             response.setErrorMessage("failed to reqeuest message " + message);
-                            DefaultFuture.received(channel, response);
+                            future.doReceived(response);
                         }
                     }
                 }
@@ -126,6 +126,8 @@ public class HeaderExchangeClient implements ExchangeClient {
                     @Override
                     public void operationComplete(ChannelFuture ft) throws Exception {
 
+                        future.sent(channel, req);
+
                         if (ft.isCancelled()) {
                             future.cancel();
                             return;
@@ -136,7 +138,7 @@ public class HeaderExchangeClient implements ExchangeClient {
                             Response response = new Response(req.getId());
                             response.setStatus(Response.SERVER_TIMEOUT);
                             response.setErrorMessage("server side timeout, elapsed: " + elapsed + " ms");
-                            DefaultFuture.received(channel, response);
+                            future.doReceived(response);
                         }
 
                     }
@@ -177,6 +179,9 @@ public class HeaderExchangeClient implements ExchangeClient {
                 new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture ft) throws Exception {
+
+                        future.sent(channel, req);
+
                         if (!ft.isSuccess()) {
                             logger.error("failed to request message " + message, ft.cause());
                         }

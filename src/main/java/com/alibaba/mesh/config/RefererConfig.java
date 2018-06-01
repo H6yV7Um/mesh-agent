@@ -17,13 +17,10 @@ import com.alibaba.mesh.rpc.cluster.Cluster;
 import com.alibaba.mesh.rpc.cluster.support.ClusterUtils;
 import com.alibaba.mesh.rpc.service.GenericService;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,9 +60,6 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
     private transient volatile Invoker invoker;
     private transient volatile boolean initialized;
     private transient volatile boolean destroyed;
-
-    private CodecConfig codecConfig;
-
     @SuppressWarnings("unused")
     private final Object finalizerGuardian = new Object() {
         @Override
@@ -77,6 +71,7 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
             }
         }
     };
+    private CodecConfig codecConfig;
 
     public RefererConfig() {
     }
@@ -313,19 +308,19 @@ public class RefererConfig<T> extends AbstractReferenceConfig {
         return interfaceName;
     }
 
+    public void setInterface(String interfaceName) {
+        this.interfaceName = interfaceName;
+        if (id == null || id.length() == 0) {
+            id = interfaceName;
+        }
+    }
+
     public void setInterface(Class<?> interfaceClass) {
         if (interfaceClass != null && !interfaceClass.isInterface()) {
             throw new IllegalStateException("The interface class " + interfaceClass + " is not a interface!");
         }
         this.interfaceClass = interfaceClass;
         setInterface(interfaceClass == null ? null : interfaceClass.getName());
-    }
-
-    public void setInterface(String interfaceName) {
-        this.interfaceName = interfaceName;
-        if (id == null || id.length() == 0) {
-            id = interfaceName;
-        }
     }
 
     public String getClient() {

@@ -4,7 +4,6 @@ import com.alibaba.mesh.common.URL;
 
 /**
  * Configurator. (SPI, Prototype, ThreadSafe)
- *
  */
 public interface Configurator extends Comparable<Configurator> {
 
