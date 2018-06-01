@@ -24,6 +24,9 @@ elif [[ "$1" == "provider-small" ]]; then
   java -jar \
        -Xms512M \
        -Xmx512M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=16 \
        -Ddubbo.protocol.port=20880 \
@@ -36,6 +39,9 @@ elif [[ "$1" == "provider-medium" ]]; then
   java -jar \
        -Xms1536M \
        -Xmx1536M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=32 \
        -Ddubbo.protocol.port=20880 \
@@ -48,6 +54,9 @@ elif [[ "$1" == "provider-large" ]]; then
   java -jar \
        -Xms2560M \
        -Xmx2560M \
+       -Dio.netty.allocator.tinyCacheSize=2048 \
+       -Dio.netty.allocator.smallCacheSize=1024 \
+       -Dio.netty.allocator.normalCacheSize=256 \
        -Dtype=provider \
        -Ddefault.weight=48 \
        -Ddubbo.protocol.port=20880 \
