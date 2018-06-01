@@ -43,6 +43,9 @@ public class NettyClient extends AbstractClient {
     @Override
     protected void doOpen() throws Throwable {
         logger.warn("available processors: " + Runtime.getRuntime().availableProcessors());
+
+        nioWorkerGroup.setIoRatio(Integer.parseInt(System.getProperty("mesh.rpc.io.ratio", "85")));
+
         bootstrap = new Bootstrap();
         bootstrap.group(nioWorkerGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
