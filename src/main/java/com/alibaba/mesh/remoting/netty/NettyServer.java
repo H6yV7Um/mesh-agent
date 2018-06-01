@@ -68,7 +68,7 @@ public class NettyServer extends AbstractServer implements Server {
 //        final NettyServerStatisticHandler statisticHandler = new NettyServerStatisticHandler(getUrl(), this);
 //        channels = statisticHandler.getChannels();
 
-        workerGroup.setIoRatio(Integer.parseInt(System.getProperty("mesh.rpc.io.ratio", "85")));
+        workerGroup.setIoRatio(Integer.parseInt(System.getProperty("mesh.rpc.io.ratio", "100")));
 
 //        bootstrap.group(bossGroup, bossGroup)
         bootstrap.group(bossGroup, workerGroup)
