@@ -9,7 +9,6 @@ import com.alibaba.mesh.remoting.Codeable;
 import com.alibaba.mesh.remoting.CodecOutputList;
 import com.alibaba.mesh.remoting.Keys;
 import com.alibaba.mesh.remoting.RemotingException;
-import com.alibaba.mesh.remoting.WriteQueue;
 import com.alibaba.mesh.remoting.exchange.InternalLongObjectHashMap;
 import com.alibaba.mesh.remoting.exchange.Request;
 import com.alibaba.mesh.remoting.exchange.Response;
@@ -27,6 +26,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,9 +46,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     private Channel endpointChannel;
     private ChannelHandlerContext serverCtx;
     private ChannelFuture future;
+    private ChannelHandlerContext endpointCtx;
     private Codeable codeable;
-    private WriteQueue writeQueue;
-    private WriteQueue writeToEndpoint;
+//    private WriteQueue writeQueue;
+//    private WriteQueue writeToEndpoint;
 
     public NettyServerDeliveryHandler(URL url, ChannelHandler handler) {
         this.url = url;
@@ -67,7 +68,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
         this.serverCtx = ctx;
-        this.writeQueue = new WriteQueue(ctx.channel());
+//        this.writeQueue = new WriteQueue(ctx.channel());
         handler.channelActive(ctx);
 
         ctx.channel().attr(Keys.URL_KEY).set(url);
@@ -111,7 +112,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             }
         });
 
-        this.writeToEndpoint = new WriteQueue(future.channel());
+//        this.writeToEndpoint = new WriteQueue(future.channel());
     }
 
     /**
@@ -127,7 +128,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+            future.channel().writeAndFlush((ByteBuf) request.getData());
+//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
             return;
         }
 
@@ -136,15 +138,17 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+            future.channel().write((ByteBuf) request.getData());
+//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
         }
+        future.channel().flush();
 
     }
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        writeToEndpoint.scheduleFlush();
-    }
+//    @Override
+//    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+//        writeToEndpoint.scheduleFlush();
+//    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
@@ -202,8 +206,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
-                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
+                    NettyServerDeliveryHandler.this.serverCtx.writeAndFlush(response);
+                    ReferenceCountUtil.release(payload);
+//                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
+//                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
                 }
                 return;
             }
@@ -237,12 +243,16 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
-                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), false);
+                    NettyServerDeliveryHandler.this.serverCtx.write(response);
+                    ReferenceCountUtil.release(payload);
+//                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
+//                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), false);
                 }
             }
 
-            NettyServerDeliveryHandler.this.writeQueue.scheduleFlush();
+            NettyServerDeliveryHandler.this.serverCtx.flush();
+
+//            NettyServerDeliveryHandler.this.writeQueue.scheduleFlush();
         }
 
         @Override

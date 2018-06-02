@@ -59,7 +59,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
     static String[] parameterType = new String[]{"Ljava/lang/String;"};
     private String establishApproach;
-    private WriteQueue responseQueue;
+    //    private WriteQueue responseQueue;
     private GenericService delegate;
 
     public NettyHttp1ServerHandler() {
@@ -115,7 +115,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        this.responseQueue = new WriteQueue(ctx.channel());
+//        this.responseQueue = new WriteQueue(ctx.channel());
         this.delegate = BeanLookup.find(GenericService.class, "delegate");
     }
 
@@ -262,7 +262,8 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
 
-            NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
+            //NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
+            ctx.writeAndFlush(httpResponse);
 
         }
 
