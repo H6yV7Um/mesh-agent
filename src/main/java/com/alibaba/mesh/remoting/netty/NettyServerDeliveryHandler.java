@@ -25,6 +25,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
@@ -132,7 +133,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            endpointCtx.writeAndFlush((ByteBuf) request.getData());
+            endpointCtx.writeAndFlush((ByteBuf) request.getData(), endpointCtx.voidPromise());
 //            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
             return;
         }
@@ -142,7 +143,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            endpointCtx.write((ByteBuf) request.getData());
+            endpointCtx.write((ByteBuf) request.getData(), endpointCtx.voidPromise());
 //            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
         }
         endpointCtx.flush();
@@ -210,7 +211,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.serverCtx.writeAndFlush(response);
+                    NettyServerDeliveryHandler.this.serverCtx.writeAndFlush(response, NettyServerDeliveryHandler.this.serverCtx.voidPromise());
                     ReferenceCountUtil.release(payload);
 //                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
 //                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), true);
@@ -247,7 +248,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setId(request.getId());
                     response.setResult(payload);
 
-                    NettyServerDeliveryHandler.this.serverCtx.write(response);
+                    NettyServerDeliveryHandler.this.serverCtx.write(response, NettyServerDeliveryHandler.this.serverCtx.voidPromise());
                     ReferenceCountUtil.release(payload);
 //                    NettyServerDeliveryHandler.this.writeQueue.enqueue(new SendResponseCommand(response,
 //                            NettyServerDeliveryHandler.this.serverCtx.voidPromise()), false);
