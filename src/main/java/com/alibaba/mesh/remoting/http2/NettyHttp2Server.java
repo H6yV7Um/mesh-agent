@@ -45,7 +45,7 @@ public class NettyHttp2Server {
                     .channel(NioServerSocketChannel.class)
 //                    .channel(NioServerSocketChannel.class)
                     // .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new NettyHttp2ServerInitializer(serverUrl));
+                    .childHandler(new NettyHttp1ServerInitializer(serverUrl));
             ch = b.bind(serverUrl.getPort()).awaitUninterruptibly().channel();
         } catch (SSLException e) {
             throw new RuntimeException(e);
