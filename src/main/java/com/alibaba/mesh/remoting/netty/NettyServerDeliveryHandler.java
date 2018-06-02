@@ -121,6 +121,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
+        if (endpointCtx == null) {
+            endpointCtx = future.channel().pipeline().firstContext();
+        }
+
         CodecOutputList list = (CodecOutputList) msg;
 
         int i = 0, size = list.size();
@@ -128,7 +132,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            future.channel().writeAndFlush((ByteBuf) request.getData());
+            endpointCtx.writeAndFlush((ByteBuf) request.getData());
 //            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
             return;
         }
@@ -138,10 +142,10 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            future.channel().write((ByteBuf) request.getData());
+            endpointCtx.write((ByteBuf) request.getData());
 //            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
         }
-        future.channel().flush();
+        endpointCtx.flush();
 
     }
 
