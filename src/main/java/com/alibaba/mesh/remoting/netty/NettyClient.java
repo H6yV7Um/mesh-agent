@@ -65,6 +65,7 @@ public class NettyClient extends AbstractClient {
         bootstrap.handler(new ChannelInitializer() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
+                logger.warn("create client channel: " + ch);
                 NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyClient.this);
                 NettyClientHandler nettyClientHandler = new NettyClientHandler(getUrl(), NettyClient.this);
                 ch.pipeline()

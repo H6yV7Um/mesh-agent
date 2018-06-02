@@ -263,7 +263,7 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
             httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
 
             //NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
-            ctx.writeAndFlush(httpResponse);
+            ctx.writeAndFlush(httpResponse, ctx.voidPromise());
 
         }
 
