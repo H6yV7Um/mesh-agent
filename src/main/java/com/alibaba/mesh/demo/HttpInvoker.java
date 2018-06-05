@@ -41,7 +41,7 @@ public class HttpInvoker {
 
         // 使用100个连接，默认是5个。
         // okhttp使用http 1.1，默认打开keep-alive
-        ConnectionPool pool = new ConnectionPool(100, 5L, TimeUnit.MINUTES);
+        ConnectionPool pool = new ConnectionPool(256, 5L, TimeUnit.MINUTES);
 
         client = new OkHttpClient.Builder()
                 .connectionPool(pool)
