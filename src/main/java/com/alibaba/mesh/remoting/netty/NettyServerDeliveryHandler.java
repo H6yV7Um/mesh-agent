@@ -25,11 +25,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.internal.shaded.org.jctools.queues.SpscLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+//import com.alibaba.mesh.remoting.DubboToHttpResponseImpl;
+//import com.alibaba.mesh.remoting.HttpResponseHelper;
 
 /**
  * @author yiji
@@ -46,9 +49,18 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     private int timeout;
     private Channel endpointChannel;
     private ChannelHandlerContext serverCtx;
-    private ChannelFuture future;
+    private ChannelFuture channelFuture;
     private ChannelHandlerContext endpointCtx;
     private Codeable codeable;
+
+    private boolean connected;
+
+//    int testAsyncSize;
+
+    SpscLinkedQueue<Request> readQueue = new SpscLinkedQueue<Request>();
+
+    //todo
+//    private HttpResponseHelper httpResponseHelper = new DubboToHttpResponseImpl();
 //    private WriteQueue writeQueue;
 //    private WriteQueue writeToEndpoint;
 
@@ -68,11 +80,14 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
+        Channel channel = ctx.channel();
+//        ChannelStatistic.CHANNELS.put(NetUtils.toAddressString((InetSocketAddress) channel.remoteAddress()), channel);
+
         this.serverCtx = ctx;
 //        this.writeQueue = new WriteQueue(ctx.channel());
         handler.channelActive(ctx);
 
-        ctx.channel().attr(Keys.URL_KEY).set(url);
+        channel.attr(Keys.URL_KEY).set(url);
 
         port = url.getParameter(Constants.ENDPOINT_PORT_KEY, -1);
         String dubboPort = System.getProperty(Constants.DUBBO_ENDPOINT_PORT_KEY);
@@ -96,14 +111,28 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
         bootstrap.handler(new RemoteChannelInitializer());
 
-        future = bootstrap.connect(host, port);
+        channelFuture = bootstrap.connect(host, port);
         int finalPort = port;
-        future.addListener(new ChannelFutureListener() {
+        channelFuture.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
+                    NettyServerDeliveryHandler.this.connected = true;
                     Channel endpointChannel = future.channel();
                     NettyServerDeliveryHandler.this.endpointChannel = endpointChannel;
+
+                    Request request = null;
+                    boolean flush = !readQueue.isEmpty();
+                    while ((request = readQueue.poll()) != null) {
+                        endpointChannel.write((ByteBuf) request.getData());
+                        if (!endpointChannel.isWritable()) {
+                            endpointChannel.flush();
+                        }
+                    }
+
+                    // Must flush at least once, even if there were no writes.
+                    if (flush)
+                        endpointChannel.flush();
                 } else {
                     if (future.cause() != null) {
                         throw new RemotingException(future.channel(), "mesh server(url: " + url + ") failed to connect to endpint "
@@ -113,7 +142,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             }
         });
 
-//        this.writeToEndpoint = new WriteQueue(future.channel());
+//        this.writeToEndpoint = new WriteQueue(channelFuture.channel());
     }
 
     /**
@@ -123,7 +152,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         if (endpointCtx == null) {
-            endpointCtx = future.channel().pipeline().firstContext();
+            endpointCtx = channelFuture.channel().pipeline().firstContext();
         }
 
         CodecOutputList list = (CodecOutputList) msg;
@@ -133,20 +162,67 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
             Request request = (Request) list.getUnsafe(i);
             requestIdMap.put(request.getRemoteId(), request);
             // received message from mesh consumer
-            endpointCtx.writeAndFlush((ByteBuf) request.getData(), endpointCtx.voidPromise());
-//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+            if (connected || channelFuture.isSuccess()) {
+                endpointCtx.writeAndFlush((ByteBuf) request.getData(), endpointCtx.voidPromise());
+            } else {
+                readQueue.offer(request);
+                /*channelFuture.addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (future.isSuccess()) {
+                            NettyServerDeliveryHandler.this.connected = true;
+                            endpointCtx.writeAndFlush((ByteBuf) request.getData(), endpointCtx.voidPromise());
+                            testAsyncSize++;
+                        }
+                    }
+                });*/
+            }
+//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), channelFuture.channel().voidPromise()), false);
             return;
         }
 
-        for (; i < size; i++) {
-            ByteBuf payload = (ByteBuf) list.getUnsafe(i);
-            Request request = (Request) list.getUnsafe(i);
-            requestIdMap.put(request.getRemoteId(), request);
-            // received message from mesh consumer
-            endpointCtx.write((ByteBuf) request.getData(), endpointCtx.voidPromise());
-//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), future.channel().voidPromise()), false);
+        if (connected || channelFuture.isSuccess()) {
+            for (; i < size; i++) {
+                ByteBuf payload = (ByteBuf) list.getUnsafe(i);
+                Request request = (Request) list.getUnsafe(i);
+                requestIdMap.put(request.getRemoteId(), request);
+                // received message from mesh consumer
+                endpointCtx.write((ByteBuf) request.getData(), endpointCtx.voidPromise());
+//            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), channelFuture.channel().voidPromise()), false);
+            }
+            endpointCtx.flush();
+        } else {
+
+            for (int j = i; j < size; j++) {
+                ByteBuf payload = (ByteBuf) list.getUnsafe(j);
+                Request request = (Request) list.getUnsafe(j);
+                requestIdMap.put(request.getRemoteId(), request);
+                // received message from mesh consumer
+//                endpointCtx.write((ByteBuf) request.getData(), endpointCtx.voidPromise());
+//                testAsyncSize++;
+                readQueue.offer(request);
+            }
+
+//            int finalI = i;
+//            channelFuture.addListener(new ChannelFutureListener() {
+//                @Override
+//                public void operationComplete(ChannelFuture future) throws Exception {
+//                    if (future.isSuccess()) {
+//                        NettyServerDeliveryHandler.this.connected = true;
+//                        for (int j = finalI; j < size; j++) {
+//                            ByteBuf payload = (ByteBuf) list.getUnsafe(j);
+//                            Request request = (Request) list.getUnsafe(j);
+//                            requestIdMap.put(request.getRemoteId(), request);
+//                            // received message from mesh consumer
+//                            endpointCtx.write((ByteBuf) request.getData(), endpointCtx.voidPromise());
+//                            testAsyncSize++;
+////            writeToEndpoint.enqueue(new SendRpcBufferCommand((ByteBuf) request.getData(), channelFuture.channel().voidPromise()), false);
+//                        }
+//                        endpointCtx.flush();
+//                    }
+//                }
+//            });
         }
-        endpointCtx.flush();
 
     }
 
@@ -173,6 +249,15 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
     }
 
     class RemoteInboundChannelHandler extends ChannelInboundHandlerAdapter {
+//        private ByteBuf byteBuf;
+
+//        RemoteInboundChannelHandler(Channel channel) {
+////            if (byteBuf == null) {
+////                byteBuf = channel.alloc().directBuffer(2048);
+////                httpResponseHelper.addResponseHeader(byteBuf);
+//            }
+//        }
+
         /**
          * We will receive message response from remote enpont(eg dubbo)
          */
@@ -209,7 +294,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setStatus(status);
 
                     response.setId(request.getId());
-                    response.setResult(payload);
+                    response.setResult(payload/*httpResponseHelper.convertResponseToHttp(payload,byteBuf)*/);
 
                     NettyServerDeliveryHandler.this.serverCtx.writeAndFlush(response, NettyServerDeliveryHandler.this.serverCtx.voidPromise());
                     ReferenceCountUtil.release(payload);
@@ -246,7 +331,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                     response.setStatus(status);
 
                     response.setId(request.getId());
-                    response.setResult(payload);
+                    response.setResult(payload/*httpResponseHelper.convertResponseToHttp(payload,byteBuf)*/);
 
                     NettyServerDeliveryHandler.this.serverCtx.write(response, NettyServerDeliveryHandler.this.serverCtx.voidPromise());
                     ReferenceCountUtil.release(payload);
@@ -257,6 +342,8 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
 
             NettyServerDeliveryHandler.this.serverCtx.flush();
 
+//            logger.error("read queue size: " + readQueue.size());
+
 //            NettyServerDeliveryHandler.this.writeQueue.scheduleFlush();
         }
 
@@ -264,6 +351,7 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             super.channelInactive(ctx);
             logger.error("endpoint disconnect from channel: " + ctx.channel());
+//            ChannelStatistic.CHANNELS.remove(ctx.channel());
         }
     }
 }
