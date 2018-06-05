@@ -89,6 +89,8 @@ public class DefaultFuture implements ResponseFuture {
             } catch (Exception e) {
                 logger.error("callback invoke error .reasult:" + res.getResult() + ",url:" + channel.attr(Keys.URL_KEY).get(), e);
             }
+        } else if (res.getStatus() == Response.SERVER_THREADPOOL_EXHAUSTED_ERROR) {
+            callbackCopy.done(res);
         } else if (res.getStatus() == Response.CLIENT_TIMEOUT || res.getStatus() == Response.SERVER_TIMEOUT) {
             try {
                 TimeoutException te = new TimeoutException(res.getStatus() == Response.SERVER_TIMEOUT, channel, res.getErrorMessage());

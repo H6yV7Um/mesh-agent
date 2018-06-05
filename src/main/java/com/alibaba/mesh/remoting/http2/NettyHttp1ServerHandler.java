@@ -247,15 +247,17 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
         @Override
         public void done(Object result) {
 
-
             Response response = (Response) result;
 
-            Object ret = response.getResult();
-
-            RpcResult r = (RpcResult) ret;
+            String result0 = null;
+            if (response.getStatus() == Response.OK) {
+                RpcResult r = (RpcResult) response.getResult();
+                result0 = (String) r.getValue();
+            } else {
+                result0 = String.valueOf(response.getStatus());
+            }
 
             ByteBuf payload = ctx.alloc().buffer();
-            String result0 = (String) r.getValue();
             payload.writeCharSequence(result0, FastJsonObjectInput.ascii);
             FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload, false);
             httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
@@ -270,6 +272,16 @@ public class NettyHttp1ServerHandler extends SimpleChannelInboundHandler<FullHtt
         @Override
         public void caught(Throwable exception) {
             logger.error("unkonwn error", exception);
+            // response error hashcode
+            ByteBuf payload = ctx.alloc().buffer();
+            payload.writeCharSequence("0", FastJsonObjectInput.ascii);
+            FullHttpResponse httpResponse = new DefaultFullHttpResponse(HTTP_1_1, OK, payload, false);
+            httpResponse.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+            httpResponse.headers().set(CONNECTION, KEEP_ALIVE);
+            httpResponse.headers().setInt(CONTENT_LENGTH, payload.readableBytes());
+
+            //NettyHttp1ServerHandler.this.responseQueue.enqueue(new InvokeMethodResponseCommand(ctx, request, ctx.voidPromise(), httpResponse), true);
+            ctx.writeAndFlush(httpResponse, ctx.voidPromise());
         }
     }
 
