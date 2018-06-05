@@ -285,9 +285,13 @@ public class NettyServerDeliveryHandler extends ChannelDuplexHandler {
                 byte status = codeable.getStatus(payload);
                 Request request = requestIdMap.remove(remoteId);
                 if (request != null) {
-                    if (status != Response.OK) {
+                    if (status != Response.OK && status != Response.SERVER_THREADPOOL_EXHAUSTED_ERROR) {
                         System.out.println("endpoint response received, id: " + remoteId + ", status: " + status);
                         return;
+                    }
+
+                    if (status == Response.SERVER_THREADPOOL_EXHAUSTED_ERROR) {
+                        payload.clear().writeByte(0);
                     }
 
                     Response response = new Response(request.getId());
