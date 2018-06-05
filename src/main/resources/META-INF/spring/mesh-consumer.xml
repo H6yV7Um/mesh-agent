@@ -9,7 +9,7 @@
     <mesh:registry address="127.0.0.1:2379" protocol="etcd3"/>
 
     <mesh:referer interface="com.alibaba.dubbo.performance.demo.provider.IHelloService"
-                  id="delegate" codec="dubbo" check="true" timeout="600000" init="true" retries="0"/>
+                  id="delegate" codec="dubbo" check="true" connections="3" init="true" retries="0"/>
 
     <!--  if uncomment, LocalDebugOnly will invoke
             com.alibaba.dubbo.performance.demo.provider.IHelloService#hash
